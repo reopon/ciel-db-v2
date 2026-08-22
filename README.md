@@ -17,7 +17,9 @@ cp .env.example .env.local  # SUPABASE_URL, SUPABASE_ANON_KEY を設定
 npm run dev
 ```
 
-Supabase プロジェクト側で `migrations/0001_init.sql` を SQL Editor から実行してテーブルを作成してください。
+Supabase プロジェクトを新規に用意する場合は `migrations/0001_init.sql` を SQL Editor から実行してテーブルを作成してください。
+
+`ciel-db` の既存 Supabase プロジェクトをそのまま使う場合は、下記「既存データの移行について」を参照し、`0001_init.sql` の代わりに `0002_migrate_existing_data.sql` を実行してください。
 
 ## データモデル
 
@@ -39,4 +41,14 @@ setlists
 
 ## 既存データの移行について
 
-旧 `ciel-db` の Supabase データ(`item_type` カラムを使うスキーマ)をそのまま流用することはできません。曲データはそのまま引き継げますが、セットリストは新スキーマに合わせて詰め直す必要があります。
+旧 `ciel-db` の Supabase データ(`item_type` カラムを使うスキーマ)をそのまま流用することはできません。`songs` / `events` はそのまま引き継げますが、`setlists` は新スキーマに合わせて詰め直す必要があります。
+
+`migrations/0002_migrate_existing_data.sql` が、既存の `setlists` の中身(`item_type` が `song` の行と `other` の行が混在した状態)を、新スキーマ(曲だけの行 + `note_before`/`note_after`)に変換するスクリプトです。
+
+**実行前に必ずバックアップを取ってください**(Supabaseダッシュボードのバックアップ機能、またはTable Editorからのエクスポート)。このスクリプトは古い `setlists` を `setlists_v1_backup` にリネームしてから新しい `setlists` を作るため、失敗してもデータ自体は残りますが、念のため別途バックアップを推奨します。
+
+1. ciel-db の Supabase プロジェクトの SQL Editor を開く
+2. `migrations/0002_migrate_existing_data.sql` の中身を貼り付けて実行
+3. 実行後、件数チェック(スクリプト末尾のコメント参照)で移行結果を確認
+4. 問題なければ `.env.local` にこのプロジェクトの `SUPABASE_URL` / `SUPABASE_ANON_KEY` を設定してアプリを起動し、実データで表示を確認
+5. 問題なければ `drop table setlists_v1_backup;` で旧データを削除(任意、急がなくてOK)
