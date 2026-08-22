@@ -78,6 +78,13 @@ end $$;
 create index if not exists setlists_event_id_idx on setlists (event_id);
 create index if not exists setlists_song_id_idx on setlists (song_id);
 
+-- The new table doesn't inherit setlists_v1_backup's RLS policies, so the
+-- anon key can't read or write it until we open it back up the same way
+-- (register/import insert setlist rows through the anon key too).
+alter table setlists enable row level security;
+create policy "Public read access" on setlists for select using (true);
+create policy "Public write access" on setlists for all using (true) with check (true);
+
 commit;
 
 -- Sanity checks before dropping the backup:

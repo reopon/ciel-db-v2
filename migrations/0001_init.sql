@@ -39,3 +39,18 @@ create table if not exists setlists (
 create index if not exists setlists_event_id_idx on setlists (event_id);
 create index if not exists setlists_song_id_idx on setlists (song_id);
 create index if not exists events_date_idx on events (date desc);
+
+-- The app reads through the anon key, so each table needs RLS enabled
+-- with an explicit public-read policy (writes go through the same anon
+-- key too, since this is a personal-use app with no auth).
+alter table songs enable row level security;
+alter table events enable row level security;
+alter table setlists enable row level security;
+
+create policy "Public read access" on songs for select using (true);
+create policy "Public read access" on events for select using (true);
+create policy "Public read access" on setlists for select using (true);
+
+create policy "Public write access" on songs for all using (true) with check (true);
+create policy "Public write access" on events for all using (true) with check (true);
+create policy "Public write access" on setlists for all using (true) with check (true);
