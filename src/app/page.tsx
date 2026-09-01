@@ -3,6 +3,7 @@ import { getSupabaseClient } from "@/lib/supabase"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { SetlistView } from "@/components/SetlistView"
+import { EventLinks } from "@/components/EventLinks"
 import { formatDate, yearMonthLabel } from "@/lib/format"
 import type { Event, EventWithSetlist, Song } from "@/lib/types"
 
@@ -15,8 +16,14 @@ interface RawSetlistRow {
   songs: Song
 }
 
+interface RawEventLink {
+  url: string
+  order: number
+}
+
 interface RawEvent extends Event {
   setlists: RawSetlistRow[]
+  event_links: RawEventLink[]
 }
 
 async function fetchEvents(): Promise<EventWithSetlist[]> {
@@ -29,7 +36,8 @@ async function fetchEvents(): Promise<EventWithSetlist[]> {
       setlists (
         order, note_before, note_after,
         songs ( id, title, release_date, lyricist, composer, arranger, choreographer, notes )
-      )
+      ),
+      event_links ( url, order )
     `
     )
     .order("date", { ascending: false })
@@ -49,6 +57,10 @@ async function fetchEvents(): Promise<EventWithSetlist[]> {
         song: s.songs,
       }))
       .sort((a, b) => a.order - b.order),
+    linkUrls: (event.event_links ?? [])
+      .slice()
+      .sort((a, b) => a.order - b.order)
+      .map((l) => l.url),
   }))
 }
 
@@ -140,6 +152,7 @@ export default async function TopPage({
                   </CardHeader>
                   <CardContent>
                     <SetlistView setlist={event.setlist} />
+                    <EventLinks urls={event.linkUrls} />
                   </CardContent>
                 </Card>
               ))}

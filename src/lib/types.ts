@@ -26,4 +26,5 @@ export interface Event {
 
 export interface EventWithSetlist extends Event {
   setlist: SetlistEntry[]
+  linkUrls: string[]
 }
