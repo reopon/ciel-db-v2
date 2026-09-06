@@ -25,19 +25,44 @@ async function insertEventWithSetlist(params: {
     console.error(dupError)
     return { status: "error", message: "重複チェックに失敗しました" }
   }
+
+  let eventId: number
+  let reusedExistingEvent = false
+
   if (existing && existing.length > 0) {
-    return { status: "error", message: "同じ日付・イベント名がすでに登録されています" }
-  }
+    eventId = existing[0].id
+    reusedExistingEvent = true
 
-  const { data: eventRow, error: eventError } = await supabase
-    .from("events")
-    .insert([{ event_name: eventName, location, date: isoDate, notes }])
-    .select()
-    .single()
+    // Already registered — only allowed to proceed if that event doesn't
+    // have a setlist yet (e.g. the event insert succeeded but the setlist
+    // insert failed previously). Otherwise this would just duplicate rows.
+    const { count, error: countError } = await supabase
+      .from("setlists")
+      .select("id", { count: "exact", head: true })
+      .eq("event_id", eventId)
 
-  if (eventError || !eventRow) {
-    console.error(eventError)
-    return { status: "error", message: "イベント登録に失敗しました" }
+    if (countError) {
+      console.error(countError)
+      return { status: "error", message: "既存イベントのセットリスト確認に失敗しました" }
+    }
+    if (count && count > 0) {
+      return {
+        status: "error",
+        message: "同じ日付・イベント名がすでに登録されていて、セットリストも登録済みです",
+      }
+    }
+  } else {
+    const { data: eventRow, error: eventError } = await supabase
+      .from("events")
+      .insert([{ event_name: eventName, location, date: isoDate, notes }])
+      .select()
+      .single()
+
+    if (eventError || !eventRow) {
+      console.error(eventError)
+      return { status: "error", message: "イベント登録に失敗しました" }
+    }
+    eventId = eventRow.id
   }
 
   if (lines.length === 0) {
@@ -67,7 +92,7 @@ async function insertEventWithSetlist(params: {
   }
 
   const inserts = entries.map((entry, index) => ({
-    event_id: eventRow.id,
+    event_id: eventId,
     song_id: entry.songId,
     order: index + 1,
     note_before: entry.noteBefore,
@@ -86,8 +111,11 @@ async function insertEventWithSetlist(params: {
     unmatchedTitles.length > 0
       ? ` (次の行は曲として認識できずMC/ノート扱いにしました: ${unmatchedTitles.join(", ")})`
       : ""
+  const baseMessage = reusedExistingEvent
+    ? "既存イベントにセットリストを登録しました！🎉"
+    : "登録完了しました！🎉"
 
-  return { status: "success", message: `登録完了しました！🎉${noteSuffix}` }
+  return { status: "success", message: `${baseMessage}${noteSuffix}` }
 }
 
 export async function registerEventAction(
