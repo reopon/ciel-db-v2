@@ -2,7 +2,8 @@
 
 import { useActionState } from "react"
 import { Button } from "@/components/ui/button"
-import { registerEventAction, initialActionState } from "@/actions/events"
+import { registerEventAction } from "@/actions/events"
+import { initialActionState } from "@/lib/action-state"
 
 export default function RegisterPage() {
   const [state, formAction, pending] = useActionState(registerEventAction, initialActionState)

@@ -3,13 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { getSupabaseClient } from "@/lib/supabase"
 import { buildSetlistEntries, parseImportText, parseSetlistLines } from "@/lib/setlist-parser"
-
-export interface ActionState {
-  status: "idle" | "success" | "error"
-  message: string
-}
-
-export const initialActionState: ActionState = { status: "idle", message: "" }
+import type { ActionState } from "@/lib/action-state"
 
 async function insertEventWithSetlist(params: {
   eventName: string

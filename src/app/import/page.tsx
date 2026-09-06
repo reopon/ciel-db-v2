@@ -2,7 +2,8 @@
 
 import { useActionState, useState, useTransition } from "react"
 import { Button } from "@/components/ui/button"
-import { importSetlistAction, initialActionState } from "@/actions/events"
+import { importSetlistAction } from "@/actions/events"
+import { initialActionState } from "@/lib/action-state"
 import { fetchTweetTextAction } from "@/actions/twitter"
 
 export default function ImportPage() {
