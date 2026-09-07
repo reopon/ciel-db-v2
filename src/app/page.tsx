@@ -7,7 +7,7 @@ import { EventLinks } from "@/components/EventLinks"
 import { formatDate, yearMonthLabel } from "@/lib/format"
 import type { Event, EventWithSetlist, Song } from "@/lib/types"
 
-export const revalidate = 0
+export const dynamic = "force-dynamic"
 
 interface RawSetlistRow {
   order: number

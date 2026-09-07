@@ -2,7 +2,7 @@ import Link from "next/link"
 import { getSupabaseClient } from "@/lib/supabase"
 import type { Song } from "@/lib/types"
 
-export const revalidate = 0
+export const dynamic = "force-dynamic"
 
 async function fetchSongs(): Promise<Song[]> {
   const supabase = getSupabaseClient()

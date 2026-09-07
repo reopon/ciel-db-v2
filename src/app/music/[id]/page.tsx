@@ -4,7 +4,7 @@ import { getSupabaseClient } from "@/lib/supabase"
 import { formatDate } from "@/lib/format"
 import type { Song } from "@/lib/types"
 
-export const revalidate = 0
+export const dynamic = "force-dynamic"
 
 interface PerformedEvent {
   id: number
