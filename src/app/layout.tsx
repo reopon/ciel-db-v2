@@ -21,7 +21,6 @@ export const metadata: Metadata = {
 const navLinks = [
   { href: "/", label: "セットリスト" },
   { href: "/music", label: "楽曲" },
-  { href: "/register", label: "登録" },
   { href: "/import", label: "インポート" },
   { href: "/about", label: "About" },
 ]
