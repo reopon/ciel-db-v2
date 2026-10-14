@@ -15,6 +15,7 @@ async function fetchGrouped(field: GroupField): Promise<[string, Song[]][]> {
   const { data, error } = await supabase
     .from("songs")
     .select("*")
+    .eq("is_repertoire", true)
     .order(field, { ascending: true })
     .order("release_date", { ascending: true })
 
