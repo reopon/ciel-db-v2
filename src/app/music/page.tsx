@@ -9,6 +9,7 @@ async function fetchSongs(): Promise<Song[]> {
   const { data, error } = await supabase
     .from("songs")
     .select("*")
+    .eq("is_repertoire", true)
     .order("release_date", { ascending: true })
     .order("id", { ascending: true })
 
