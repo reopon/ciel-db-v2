@@ -18,7 +18,7 @@ export async function EventLinks({ urls }: { urls: string[] }) {
         >
           {preview.image && <LinkPreviewImage src={preview.image} alt="" />}
           <div className="min-w-0 flex-1">
-            <div className="text-sm font-medium truncate">{preview.title || preview.url}</div>
+            <div className="text-sm font-medium text-brand truncate">{preview.title || preview.url}</div>
             {preview.description && (
               <div className="text-xs text-muted-foreground line-clamp-2">{preview.description}</div>
             )}

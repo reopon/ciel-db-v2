@@ -34,7 +34,7 @@ export default async function MonthArchivePage({
         <Link href={`/archive/${prev.year}/${prev.month}`} className="text-sm text-muted-foreground hover:underline">
           ← {prev.year}年{prev.month}月
         </Link>
-        <h1 className="text-2xl font-bold">
+        <h1 className="text-2xl font-display tracking-wide font-semibold">
           {year}年{monthNum}月
         </h1>
         <Link href={`/archive/${next.year}/${next.month}`} className="text-sm text-muted-foreground hover:underline">

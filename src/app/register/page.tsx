@@ -10,7 +10,7 @@ export default function RegisterPage() {
 
   return (
     <main className="max-w-xl mx-auto px-4 py-10 space-y-6">
-      <h1 className="text-2xl font-bold">ライブ登録</h1>
+      <h1 className="text-2xl font-display tracking-wide font-semibold">ライブ登録</h1>
 
       <form action={formAction} className="space-y-4">
         <Field label="イベント名">

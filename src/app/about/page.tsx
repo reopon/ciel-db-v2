@@ -1,7 +1,7 @@
 export default function AboutPage() {
   return (
     <main className="max-w-xl mx-auto px-4 py-10 text-sm leading-relaxed space-y-6">
-      <h1 className="text-2xl font-bold">About</h1>
+      <h1 className="text-2xl font-display tracking-wide font-semibold">About</h1>
 
       <p>
         Gran☆Cielのセットリストを記録・整理することを目的とした、非公式・非営利のデータベースサイトです。

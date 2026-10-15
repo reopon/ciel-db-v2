@@ -25,7 +25,7 @@ export default async function MusicPage() {
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-8 space-y-6">
-      <h1 className="text-2xl font-bold">楽曲一覧</h1>
+      <h1 className="text-2xl font-display tracking-wide font-semibold">楽曲一覧</h1>
 
       <div className="overflow-x-auto rounded-md border">
         <table className="w-full text-sm">
@@ -42,7 +42,7 @@ export default async function MusicPage() {
             {songs.map((song) => (
               <tr key={song.id} className="hover:bg-accent/50">
                 <td className="p-2 sticky left-0 bg-background">
-                  <Link href={`/music/${song.id}`} className="font-medium hover:underline">
+                  <Link href={`/music/${song.id}`} className="font-medium text-brand underline underline-offset-2 decoration-brand/40 hover:decoration-brand">
                     {song.title}
                   </Link>
                 </td>

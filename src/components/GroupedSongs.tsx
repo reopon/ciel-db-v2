@@ -39,7 +39,7 @@ export async function GroupedSongs({ field, pageTitle }: { field: GroupField; pa
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-8 space-y-6">
-      <h1 className="text-2xl font-bold">{pageTitle}</h1>
+      <h1 className="text-2xl font-display tracking-wide font-semibold">{pageTitle}</h1>
 
       <div className="space-y-6">
         {groups.map(([name, songs]) => (
@@ -57,7 +57,7 @@ export async function GroupedSongs({ field, pageTitle }: { field: GroupField; pa
                     href={`/music/${song.id}`}
                     className="p-2 rounded-md border hover:bg-accent/50 block"
                   >
-                    <div className="font-medium text-sm">{song.title}</div>
+                    <div className="font-medium text-sm text-brand">{song.title}</div>
                     <div className="text-xs text-muted-foreground">
                       {FIELD_LABEL[otherField]}: {song[otherField] || "-"}
                     </div>

@@ -27,7 +27,7 @@ export default function ImportPage() {
 
   return (
     <main className="max-w-xl mx-auto px-4 py-10 space-y-6">
-      <h1 className="text-2xl font-bold">#しえるセットリスト インポート</h1>
+      <h1 className="text-2xl font-display tracking-wide font-semibold">#しえるセットリスト インポート</h1>
       <p className="text-sm text-muted-foreground">
         SNSに投稿するセットリストのテキストをそのまま貼り付けて登録できます。
       </p>

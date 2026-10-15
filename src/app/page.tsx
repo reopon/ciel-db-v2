@@ -30,7 +30,7 @@ export default async function TopPage() {
   return (
     <main className="max-w-3xl mx-auto px-4 py-8 space-y-8">
       <div className="flex items-baseline justify-between flex-wrap gap-2">
-        <h1 className="text-2xl font-bold">
+        <h1 className="text-2xl font-display tracking-wide font-semibold">
           {Number(currentYear)}年{Number(currentMonth)}月の公演
         </h1>
         <Link href="/archive" className="text-sm text-muted-foreground hover:underline">

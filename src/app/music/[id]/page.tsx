@@ -51,12 +51,12 @@ export default async function SongDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <main className="max-w-xl mx-auto px-4 py-10 space-y-6">
-      <Link href="/music" className="text-sm text-muted-foreground hover:underline">
+      <Link href="/music" className="text-sm text-brand underline underline-offset-2 decoration-brand/40 hover:decoration-brand">
         ← 楽曲一覧に戻る
       </Link>
 
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold">{song.title}</h1>
+        <h1 className="text-2xl font-display tracking-wide font-semibold">{song.title}</h1>
         <p className="text-sm text-muted-foreground">
           発売日: {formatDate(song.release_date)}
         </p>
