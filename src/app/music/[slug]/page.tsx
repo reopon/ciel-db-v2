@@ -13,9 +13,9 @@ interface PerformedEvent {
   location: string | null
 }
 
-async function fetchSong(id: number): Promise<Song | null> {
+async function fetchSong(slug: string): Promise<Song | null> {
   const supabase = getSupabaseClient()
-  const { data, error } = await supabase.from("songs").select("*").eq("id", id).single()
+  const { data, error } = await supabase.from("songs").select("*").eq("slug", slug).single()
   if (error || !data) return null
   return data
 }
@@ -39,15 +39,13 @@ async function fetchPerformances(songId: number): Promise<PerformedEvent[]> {
   return events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 }
 
-export default async function SongDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
-  const songId = Number(id)
-  if (!Number.isInteger(songId)) notFound()
+export default async function SongDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
 
-  const song = await fetchSong(songId)
+  const song = await fetchSong(slug)
   if (!song) notFound()
 
-  const performances = await fetchPerformances(songId)
+  const performances = await fetchPerformances(song.id)
 
   return (
     <main className="max-w-xl mx-auto px-4 py-10 space-y-6">

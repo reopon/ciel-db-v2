@@ -27,7 +27,7 @@ export async function fetchEvents(): Promise<EventWithSetlist[]> {
       id, event_name, date, location, notes,
       setlists (
         order, note_before, note_after,
-        songs ( id, title, release_date, lyricist, composer, arranger, choreographer, notes )
+        songs ( id, slug, title, release_date, lyricist, composer, arranger, choreographer, notes )
       ),
       event_links ( url, order )
     `

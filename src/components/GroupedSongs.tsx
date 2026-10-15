@@ -54,7 +54,7 @@ export async function GroupedSongs({ field, pageTitle }: { field: GroupField; pa
                 {songs.map((song) => (
                   <Link
                     key={song.id}
-                    href={`/music/${song.id}`}
+                    href={`/music/${song.slug}`}
                     className="p-2 rounded-md border hover:bg-accent/50 block"
                   >
                     <div className="font-medium text-sm text-brand">{song.title}</div>

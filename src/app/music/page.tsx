@@ -42,7 +42,7 @@ export default async function MusicPage() {
             {songs.map((song) => (
               <tr key={song.id} className="hover:bg-accent/50">
                 <td className="p-2 sticky left-0 bg-background">
-                  <Link href={`/music/${song.id}`} className="font-medium text-brand underline underline-offset-2 decoration-brand/40 hover:decoration-brand">
+                  <Link href={`/music/${song.slug}`} className="font-medium text-brand underline underline-offset-2 decoration-brand/40 hover:decoration-brand">
                     {song.title}
                   </Link>
                 </td>

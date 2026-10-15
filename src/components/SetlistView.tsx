@@ -17,7 +17,7 @@ export function SetlistView({ setlist }: { setlist: SetlistEntry[] }) {
               {entry.order}
             </span>
             <Link
-              href={`/music/${entry.song.id}`}
+              href={`/music/${entry.song.slug}`}
               className="text-sm text-brand underline underline-offset-2 decoration-brand/40 hover:decoration-brand"
             >
               {entry.song.title}

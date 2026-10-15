@@ -1,5 +1,6 @@
 export interface Song {
   id: number
+  slug: string
   title: string
   release_date: string
   lyricist: string | null
