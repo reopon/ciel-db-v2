@@ -19,7 +19,8 @@ export const metadata: Metadata = {
 };
 
 const navLinks = [
-  { href: "/", label: "セットリスト" },
+  { href: "/", label: "今月の公演" },
+  { href: "/archive", label: "アーカイブ" },
   { href: "/music", label: "楽曲" },
   { href: "/import", label: "インポート" },
   { href: "/about", label: "About" },
