@@ -1,48 +1,74 @@
-export default function AboutPage() {
+import { Fragment } from "react"
+import { getSupabaseClient } from "@/lib/supabase"
+
+export const dynamic = "force-dynamic"
+
+interface AboutEntry {
+  id: number
+  title: string | null
+  body: string
+  is_visible: boolean
+  order: number
+}
+
+async function fetchAboutEntries(): Promise<AboutEntry[]> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase
+    .from("about_entries")
+    .select("*")
+    .eq("is_visible", true)
+
+  if (error) {
+    console.error(error)
+    return []
+  }
+  return (data as AboutEntry[]).slice().sort((a, b) => a.order - b.order)
+}
+
+const URL_PATTERN = /https?:\/\/[^\s]+/g
+
+// body の中の素のURLをそのままリンクテキストとしてリンク化する(記法なし)。
+function linkify(line: string) {
+  const parts = line.split(URL_PATTERN)
+  const urls = line.match(URL_PATTERN) ?? []
+
+  return parts.map((part, i) => (
+    <Fragment key={i}>
+      {part}
+      {urls[i] && (
+        <a
+          href={urls[i]}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-brand underline underline-offset-2 decoration-brand/40 hover:decoration-brand"
+        >
+          {urls[i]}
+        </a>
+      )}
+    </Fragment>
+  ))
+}
+
+export default async function AboutPage() {
+  const entries = await fetchAboutEntries()
+
   return (
     <main className="max-w-xl mx-auto px-4 py-10 text-sm leading-relaxed space-y-6">
       <h1 className="text-2xl font-display tracking-wide font-semibold">About</h1>
 
-      <p>
-        Gran☆Cielのセットリストを記録・整理することを目的とした、非公式・非営利のデータベースサイトです。
-        <br />
-        楽曲情報もまとめています。
-        <br />
-        所属事務所やメンバーご本人、関係各所とは一切関係ございません。
-      </p>
-
-      <section className="space-y-2">
-        <h2 className="font-semibold">情報の出典について</h2>
-        <p>
-          Gran☆Ciel公式やメンバー、関係者のSNSなどweb公開情報を参照しています。
-          <br />
-          また、Wikipediaやファンの方が発信した情報も参考にしています。
-        </p>
-      </section>
-
-      <section className="space-y-2">
-        <h2 className="font-semibold">セットリストの登録状況</h2>
-        <p>
-          ライブイベントのセットリストは、情報を確認できましたら数日以内に登録しています。
-          <br />
-          過去のデータについては随時、追える範囲で追加していく予定です。
-        </p>
-      </section>
-
-      <section className="space-y-2">
-        <h2 className="font-semibold">お問い合わせ</h2>
-        <p>
-          <a
-            href="https://x.com/reopon"
-            className="text-primary underline underline-offset-2"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            @reopon
-          </a>{" "}
-          までご連絡いただければ幸いです。
-        </p>
-      </section>
+      {entries.map((entry) => (
+        <section key={entry.id} className="space-y-2">
+          {entry.title && <h2 className="font-semibold">{entry.title}</h2>}
+          <p>
+            {entry.body.split("\n").map((line, i) => (
+              <Fragment key={i}>
+                {i > 0 && <br />}
+                {linkify(line)}
+              </Fragment>
+            ))}
+          </p>
+        </section>
+      ))}
     </main>
   )
 }
