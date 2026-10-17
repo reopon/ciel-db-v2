@@ -42,7 +42,7 @@ export async function updateEventAction(_prevState: ActionState, formData: FormD
       date: isoDate,
       notes,
       stage_costume: stageCostume,
-      upteded_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     })
     .eq("id", eventId)
 

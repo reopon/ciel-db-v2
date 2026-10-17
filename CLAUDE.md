@@ -35,7 +35,7 @@ npm run lint     # eslint
 - `events`: id, event_name, date, location(多くの行がまだ null — 会場の日付別ログを探索中、埋める情報源が見つかるまで一括登録はしない), notes
 - `setlists`: id, event_id, song_id, order(欠番なしの曲番号), note_before, note_after
 - `event_links`: id, event_id, url, order — イベントに紐づくX投稿/ブログ等のURL、OGPプレビュー表示用
-- `events` には他に created_at, upteded_at(タイポではなく実際のライブカラム名、リネームは未着手), stage_costume(その回の衣装。メンバーの自撮り等から手動入力、随時埋めていく運用)もある。もともと SQL Editor から直接追加されたもので migration には無かったが、`0006_event_update_fields.sql` で追従済み。
+- `events` には他に created_at, updated_at(`0006`追従時は `upteded_at` というタイポだったが`0007`でリネーム済み), stage_costume(その回の衣装。メンバーの自撮り等から手動入力、随時埋めていく運用)もある。もともと SQL Editor から直接追加されたもので migration には無かったが、`0006_event_update_fields.sql` で追従済み。
 - `about_entries`: id, title(nullable), body, is_visible, order — `/about` の表示内容。1行1セクションで、`is_visible=true` のものを `order` 昇順で表示する。`body` 内の素のURLは `src/app/about/page.tsx` の `linkify` がそのままリンク化する(記法なし)。編集はSupabaseのTable Editorから直接行う想定で、サイト側に編集UIはない。
 - 新規/リネーム後のテーブルは RLS ポリシーを引き継がない。テーブルを追加・再作成したら必ず `enable row level security` + 読み書きポリシーをセットで追加すること(0002, 0003 で実際に踏んだ地雷)。
 
