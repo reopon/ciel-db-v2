@@ -16,7 +16,7 @@ npm run build   # 本番ビルド (next build) — Vercel と同じ静的生成�
 npm run lint     # eslint
 ```
 
-テストは未整備(テストコマンドなし)。初回セットアップは `.env.example` を `.env.local` にコピーし `SUPABASE_URL` / `SUPABASE_ANON_KEY` を設定(どちらも `NEXT_PUBLIC_` プレフィックスなし — サーバー専用、ブラウザには出さない)。新規 Supabase プロジェクトなら `migrations/0001_init.sql` を SQL Editor で実行。
+テストは未整備(テストコマンドなし)。初回セットアップは `.env.example` を `.env.local` にコピーし `SUPABASE_URL` / `SUPABASE_ANON_KEY` / `ADMIN_PASSWORD` を設定(前者2つは `NEXT_PUBLIC_` プレフィックスなし — サーバー専用、ブラウザには出さない)。新規 Supabase プロジェクトなら `migrations/0001_init.sql` を SQL Editor で実行。
 
 ## Architecture
 
@@ -35,6 +35,7 @@ npm run lint     # eslint
 - `events`: id, event_name, date, location(多くの行がまだ null — 会場の日付別ログを探索中、埋める情報源が見つかるまで一括登録はしない), notes
 - `setlists`: id, event_id, song_id, order(欠番なしの曲番号), note_before, note_after
 - `event_links`: id, event_id, url, order — イベントに紐づくX投稿/ブログ等のURL、OGPプレビュー表示用
+- `events` には他に created_at, upteded_at(タイポではなく実際のライブカラム名、リネームは未着手), stage_costume(その回の衣装。メンバーの自撮り等から手動入力、随時埋めていく運用)もある。もともと SQL Editor から直接追加されたもので migration には無かったが、`0006_event_update_fields.sql` で追従済み。
 - `about_entries`: id, title(nullable), body, is_visible, order — `/about` の表示内容。1行1セクションで、`is_visible=true` のものを `order` 昇順で表示する。`body` 内の素のURLは `src/app/about/page.tsx` の `linkify` がそのままリンク化する(記法なし)。編集はSupabaseのTable Editorから直接行う想定で、サイト側に編集UIはない。
 - 新規/リネーム後のテーブルは RLS ポリシーを引き継がない。テーブルを追加・再作成したら必ず `enable row level security` + 読み書きポリシーをセットで追加すること(0002, 0003 で実際に踏んだ地雷)。
 
@@ -45,6 +46,9 @@ Supabase を読むページは `export const dynamic = "force-dynamic"` を必�
 - `/import`: `#しえるセットリスト` 形式のテキストを貼り付けて `parseImportText` で日付/会場/曲リストに分解し登録。X投稿URLを貼ると `src/lib/twitter-oembed.ts`(公開oEmbedエンドポイント、APIキー不要、1件のURLのみ対応)で本文を取得してテキスト欄に流し込める。
 - `/register`: 1行1曲手入力フォーム。現在ナビ(`src/app/layout.tsx` の `navLinks`)からは外しているが、ソース・ルートとも削除していない。
 - `src/lib/ogp.ts`: イベントリンクのOGPプレビュー用に `<meta property="og:...">` を正規表現で抜くだけの軽量スクレイパー(外部HTMLパーサ依存なし)。
+
+### イベント編集(`/events/edit`, `/events/[id]/edit`)
+`/import`・`/register` が新規作成専用なのに対し、こちらは既存イベントを後から更新するための経路(「先にイベントを登録→開催後にセットリストを埋める」運用のため)。`src/app/(admin)/` ルートグループ配下にあり、`(admin)/layout.tsx` が `ADMIN_PASSWORD`(簡易パスワード、Supabaseの書き込みRLSが元々anonキーに開放されているためUIへの軽い鍵でしかないことに注意)によるクッキー認証をかけている。`/events/edit` はID or 日付でイベントを検索(`<form method="get">`、Server Action不要)、`/events/[id]/edit` が本体フォーム。保存(`src/actions/event-edit.ts` の `updateEventAction`)はセットリスト・関連URLとも**差分更新ではなく全削除→再insert**という割り切った実装(低頻度の個人管理ツールのため)。ナビゲーションには出していない(`/register` と同じ扱い)。
 
 ### デザイントークン
 `src/app/globals.css` に Option A "Cool Precision"(紺/白/エレクトリックブルー)パレットを `:root` / `.dark` で定義、`--brand` が強調色。フォントは `next/font/google` 経由で Oswald(`--font-oswald` / `font-display`、見出し用)と Zen Kaku Gothic New(`--font-zen-kaku-gothic-new` / `font-sans`、本文用)。リンクは `text-brand underline underline-offset-2 decoration-brand/40 hover:decoration-brand` で統一し、クリック可否を視覚的に明示する。

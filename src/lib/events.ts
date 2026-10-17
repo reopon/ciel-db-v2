@@ -18,28 +18,17 @@ interface RawEvent extends Event {
   event_links: RawEventLink[]
 }
 
-export async function fetchEvents(): Promise<EventWithSetlist[]> {
-  const supabase = getSupabaseClient()
-  const { data, error } = await supabase
-    .from("events")
-    .select(
-      `
-      id, event_name, date, location, notes,
-      setlists (
-        order, note_before, note_after,
-        songs ( id, slug, title, release_date, lyricist, composer, arranger, choreographer, notes )
-      ),
-      event_links ( url, order )
-    `
-    )
-    .order("date", { ascending: false })
+const EVENT_SELECT = `
+  id, event_name, date, location, notes, stage_costume,
+  setlists (
+    order, note_before, note_after,
+    songs ( id, slug, title, release_date, lyricist, composer, arranger, choreographer, notes )
+  ),
+  event_links ( url, order )
+`
 
-  if (error) {
-    console.error(error)
-    return []
-  }
-
-  return (data as unknown as RawEvent[]).map((event) => ({
+function mapRawEvent(event: RawEvent): EventWithSetlist {
+  return {
     ...event,
     setlist: (event.setlists ?? [])
       .map((s) => ({
@@ -53,7 +42,66 @@ export async function fetchEvents(): Promise<EventWithSetlist[]> {
       .slice()
       .sort((a, b) => a.order - b.order)
       .map((l) => l.url),
-  }))
+  }
+}
+
+export async function fetchEvents(): Promise<EventWithSetlist[]> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase
+    .from("events")
+    .select(EVENT_SELECT)
+    .order("date", { ascending: false })
+
+  if (error) {
+    console.error(error)
+    return []
+  }
+
+  return (data as unknown as RawEvent[]).map(mapRawEvent)
+}
+
+export async function fetchEventById(id: number): Promise<EventWithSetlist | null> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase.from("events").select(EVENT_SELECT).eq("id", id).maybeSingle()
+
+  if (error) {
+    console.error(error)
+    return null
+  }
+  if (!data) return null
+
+  return mapRawEvent(data as unknown as RawEvent)
+}
+
+export async function fetchEventsByDate(isoDate: string): Promise<EventWithSetlist[]> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase.from("events").select(EVENT_SELECT).eq("date", isoDate)
+
+  if (error) {
+    console.error(error)
+    return []
+  }
+
+  return (data as unknown as RawEvent[]).map(mapRawEvent)
+}
+
+// For the setlist row picker on the event edit form. Deliberately NOT
+// filtered by is_repertoire — cover/non-repertoire songs can still
+// legitimately appear in a historical setlist, unlike the /music page
+// which only lists the group's own current repertoire.
+export async function fetchSongsForPicker(): Promise<Pick<Song, "id" | "slug" | "title">[]> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase
+    .from("songs")
+    .select("id, slug, title")
+    .order("release_date", { ascending: true })
+    .order("id", { ascending: true })
+
+  if (error) {
+    console.error(error)
+    return []
+  }
+  return data
 }
 
 export function groupByYearMonth(events: EventWithSetlist[]): [string, EventWithSetlist[]][] {
