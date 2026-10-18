@@ -21,7 +21,7 @@ interface RawEvent extends Omit<Event, "venue"> {
 
 const EVENT_SELECT = `
   id, event_name, date, notes, stage_costume,
-  venue:venues ( id, name ),
+  venue:venues ( id, name, slug ),
   setlists (
     order, note_before, note_after,
     songs ( id, slug, title, release_date, lyricist, composer, arranger, choreographer, notes )
@@ -106,7 +106,7 @@ export async function fetchSongsForPicker(): Promise<Pick<Song, "id" | "slug" | 
   return data
 }
 
-export async function fetchVenuesForPicker(): Promise<Venue[]> {
+export async function fetchVenuesForPicker(): Promise<Pick<Venue, "id" | "name">[]> {
   const supabase = getSupabaseClient()
   const { data, error } = await supabase.from("venues").select("id, name").order("name", { ascending: true })
 
@@ -115,6 +115,64 @@ export async function fetchVenuesForPicker(): Promise<Venue[]> {
     return []
   }
   return data
+}
+
+export async function fetchVenueBySlug(slug: string): Promise<Venue | null> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase
+    .from("venues")
+    .select("id, name, slug")
+    .eq("slug", slug)
+    .maybeSingle()
+
+  if (error) {
+    console.error(error)
+    return null
+  }
+  return data
+}
+
+// For the /venues list page. Counting in JS (rather than a Postgrest
+// embedded-count select) matches this codebase's existing preference for
+// plain in-memory grouping (see groupByYearMonth, GroupedSongs.tsx) over
+// cleverer single-query SQL — at ~120 venues / ~370 events this costs
+// nothing.
+export async function fetchVenuesWithEventCounts(): Promise<(Venue & { eventCount: number })[]> {
+  const supabase = getSupabaseClient()
+  const [{ data: venues, error: venueError }, { data: events, error: eventError }] = await Promise.all([
+    supabase.from("venues").select("id, name, slug"),
+    supabase.from("events").select("venue_id"),
+  ])
+
+  if (venueError || eventError) {
+    console.error(venueError, eventError)
+    return []
+  }
+
+  const counts = new Map<number, number>()
+  for (const e of events) {
+    if (e.venue_id == null) continue
+    counts.set(e.venue_id, (counts.get(e.venue_id) ?? 0) + 1)
+  }
+
+  return venues
+    .map((v) => ({ ...v, eventCount: counts.get(v.id) ?? 0 }))
+    .sort((a, b) => b.eventCount - a.eventCount || a.name.localeCompare(b.name, "ja"))
+}
+
+export async function fetchEventsByVenueId(venueId: number): Promise<EventWithSetlist[]> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase
+    .from("events")
+    .select(EVENT_SELECT)
+    .eq("venue_id", venueId)
+    .order("date", { ascending: false })
+
+  if (error) {
+    console.error(error)
+    return []
+  }
+  return (data as unknown as RawEvent[]).map(mapRawEvent)
 }
 
 // Resolves a free-text venue name to a venues.id, creating the row if it

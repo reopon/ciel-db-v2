@@ -6,7 +6,7 @@ import { registerEventAction } from "@/actions/events"
 import { initialActionState } from "@/lib/action-state"
 import type { Venue } from "@/lib/types"
 
-export function RegisterForm({ venues }: { venues: Venue[] }) {
+export function RegisterForm({ venues }: { venues: Pick<Venue, "id" | "name">[] }) {
   const [state, formAction, pending] = useActionState(registerEventAction, initialActionState)
 
   return (

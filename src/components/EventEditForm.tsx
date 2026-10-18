@@ -43,7 +43,7 @@ export function EventEditForm({
 }: {
   event: EventWithSetlist
   songs: Pick<Song, "id" | "slug" | "title">[]
-  venues: Venue[]
+  venues: Pick<Venue, "id" | "name">[]
 }) {
   const [state, formAction, pending] = useActionState(updateEventAction, initialActionState)
 

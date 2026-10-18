@@ -20,6 +20,7 @@ export interface SetlistEntry {
 export interface Venue {
   id: number
   name: string
+  slug: string
 }
 
 export interface Event {
