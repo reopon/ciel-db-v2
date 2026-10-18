@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { fetchEvents } from "@/lib/events"
 import { EventCard } from "@/components/EventCard"
+import { MonthCalendar } from "@/components/MonthCalendar"
 import { todayJstIso } from "@/lib/format"
 
 export const dynamic = "force-dynamic"
@@ -37,6 +38,8 @@ export default async function TopPage() {
           過去のセットリストを探す →
         </Link>
       </div>
+
+      <MonthCalendar year={Number(currentYear)} month={Number(currentMonth)} events={thisMonthEvents} />
 
       {thisMonthEvents.length === 0 ? (
         <p className="text-sm text-muted-foreground">今月の公演情報はまだありません</p>
