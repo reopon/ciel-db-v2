@@ -1,12 +1,16 @@
 import Link from "next/link"
-import { fetchEventById, fetchSongsForPicker } from "@/lib/events"
+import { fetchEventById, fetchSongsForPicker, fetchVenuesForPicker } from "@/lib/events"
 import { EventEditForm } from "@/components/EventEditForm"
 
 export const dynamic = "force-dynamic"
 
 export default async function EventEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const [event, songs] = await Promise.all([fetchEventById(Number(id)), fetchSongsForPicker()])
+  const [event, songs, venues] = await Promise.all([
+    fetchEventById(Number(id)),
+    fetchSongsForPicker(),
+    fetchVenuesForPicker(),
+  ])
 
   if (!event) {
     return (
@@ -27,7 +31,7 @@ export default async function EventEditPage({ params }: { params: Promise<{ id: 
           検索に戻る
         </Link>
       </div>
-      <EventEditForm event={event} songs={songs} />
+      <EventEditForm event={event} songs={songs} venues={venues} />
     </main>
   )
 }

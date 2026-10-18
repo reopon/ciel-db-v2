@@ -1,5 +1,5 @@
 import { getSupabaseClient } from "@/lib/supabase"
-import type { Event, EventWithSetlist, Song } from "@/lib/types"
+import type { Event, EventWithSetlist, Song, Venue } from "@/lib/types"
 
 interface RawSetlistRow {
   order: number
@@ -13,13 +13,15 @@ interface RawEventLink {
   order: number
 }
 
-interface RawEvent extends Event {
+interface RawEvent extends Omit<Event, "venue"> {
+  venue: Venue | null
   setlists: RawSetlistRow[]
   event_links: RawEventLink[]
 }
 
 const EVENT_SELECT = `
-  id, event_name, date, location, notes, stage_costume,
+  id, event_name, date, notes, stage_costume,
+  venue:venues ( id, name ),
   setlists (
     order, note_before, note_after,
     songs ( id, slug, title, release_date, lyricist, composer, arranger, choreographer, notes )
@@ -102,6 +104,56 @@ export async function fetchSongsForPicker(): Promise<Pick<Song, "id" | "slug" | 
     return []
   }
   return data
+}
+
+export async function fetchVenuesForPicker(): Promise<Venue[]> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase.from("venues").select("id, name").order("name", { ascending: true })
+
+  if (error) {
+    console.error(error)
+    return []
+  }
+  return data
+}
+
+// Resolves a free-text venue name to a venues.id, creating the row if it
+// doesn't exist yet. Used by /register and /import, which both still
+// accept arbitrary venue text (unlike the admin edit form's strict
+// dropdown) — this is the one place new venues get created from free
+// text, so it's where future spelling drift would creep back in if this
+// helper didn't exist. A blank/whitespace-only name (e.g. the "no venue
+// line found" case) resolves to null rather than creating a junk row.
+export async function findOrCreateVenueId(
+  supabase: ReturnType<typeof getSupabaseClient>,
+  name: string
+): Promise<number | null> {
+  const trimmed = name.trim()
+  if (!trimmed) return null
+
+  const { data: existing, error: selectError } = await supabase
+    .from("venues")
+    .select("id")
+    .eq("name", trimmed)
+    .maybeSingle()
+
+  if (selectError) {
+    console.error(selectError)
+    return null
+  }
+  if (existing) return existing.id
+
+  const { data: created, error: insertError } = await supabase
+    .from("venues")
+    .insert([{ name: trimmed }])
+    .select("id")
+    .single()
+
+  if (insertError) {
+    console.error(insertError)
+    return null
+  }
+  return created.id
 }
 
 export function groupByYearMonth(events: EventWithSetlist[]): [string, EventWithSetlist[]][] {

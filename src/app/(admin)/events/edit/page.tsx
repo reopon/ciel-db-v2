@@ -63,7 +63,7 @@ export default async function EventLookupPage({
                   className="block p-2 rounded-md border hover:bg-accent/50 text-sm"
                 >
                   <span className="font-medium">{e.event_name}</span>
-                  <span className="text-muted-foreground"> @ {e.location || "場所不明"}</span>
+                  <span className="text-muted-foreground"> @ {e.venue?.name || "場所不明"}</span>
                 </Link>
               </li>
             ))}

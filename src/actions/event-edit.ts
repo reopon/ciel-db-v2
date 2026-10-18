@@ -2,13 +2,15 @@
 
 import { revalidatePath } from "next/cache"
 import { getSupabaseClient } from "@/lib/supabase"
+import { findOrCreateVenueId } from "@/lib/events"
 import type { ActionState } from "@/lib/action-state"
 import type { SetlistRowPayload } from "@/lib/types"
 
 export async function updateEventAction(_prevState: ActionState, formData: FormData): Promise<ActionState> {
   const eventId = Number(formData.get("eventId"))
   const eventName = String(formData.get("eventName") ?? "").trim()
-  const location = String(formData.get("location") ?? "").trim()
+  const venueIdField = String(formData.get("venueId") ?? "").trim()
+  const newVenueName = String(formData.get("newVenueName") ?? "").trim()
   const isoDate = String(formData.get("date") ?? "").trim()
   const notes = String(formData.get("notes") ?? "").trim() || null
   const stageCostume = String(formData.get("stageCostume") ?? "").trim() || null
@@ -34,11 +36,20 @@ export async function updateEventAction(_prevState: ActionState, formData: FormD
 
   const supabase = getSupabaseClient()
 
+  // A newly-typed venue name wins over the dropdown selection; otherwise
+  // use whatever the dropdown carried (the blank "選択してください" option
+  // resolves to null, intentionally clearing the venue).
+  const venueId = newVenueName
+    ? await findOrCreateVenueId(supabase, newVenueName)
+    : venueIdField
+      ? Number(venueIdField)
+      : null
+
   const { error: eventError } = await supabase
     .from("events")
     .update({
       event_name: eventName,
-      location: location || null,
+      venue_id: venueId,
       date: isoDate,
       notes,
       stage_costume: stageCostume,

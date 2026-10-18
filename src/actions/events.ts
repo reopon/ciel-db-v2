@@ -2,18 +2,20 @@
 
 import { revalidatePath } from "next/cache"
 import { getSupabaseClient } from "@/lib/supabase"
+import { findOrCreateVenueId } from "@/lib/events"
 import { buildSetlistEntries, parseImportText, parseSetlistLines } from "@/lib/setlist-parser"
 import type { ActionState } from "@/lib/action-state"
 
 async function insertEventWithSetlist(params: {
   eventName: string
-  location: string
+  venueName: string
   isoDate: string
   notes: string | null
   lines: string[]
 }): Promise<ActionState> {
-  const { eventName, location, isoDate, notes, lines } = params
+  const { eventName, venueName, isoDate, notes, lines } = params
   const supabase = getSupabaseClient()
+  const venueId = await findOrCreateVenueId(supabase, venueName)
 
   const { data: existing, error: dupError } = await supabase
     .from("events")
@@ -54,7 +56,7 @@ async function insertEventWithSetlist(params: {
   } else {
     const { data: eventRow, error: eventError } = await supabase
       .from("events")
-      .insert([{ event_name: eventName, location, date: isoDate, notes }])
+      .insert([{ event_name: eventName, venue_id: venueId, date: isoDate, notes }])
       .select()
       .single()
 
@@ -134,7 +136,7 @@ export async function registerEventAction(
 
   return insertEventWithSetlist({
     eventName,
-    location,
+    venueName: location,
     isoDate,
     notes: notes || null,
     lines: parseSetlistLines(setlistText),
@@ -154,7 +156,7 @@ export async function importSetlistAction(
 
   return insertEventWithSetlist({
     eventName: parsed.eventName,
-    location: parsed.location,
+    venueName: parsed.location,
     isoDate: parsed.isoDate,
     notes: null,
     lines: parsed.lines,

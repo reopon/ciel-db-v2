@@ -21,7 +21,7 @@ export default async function ArchivePage({
     if (year && event.date.slice(0, 4) !== year) return false
     if (q) {
       const needle = q.toLowerCase()
-      const haystack = [event.event_name, event.location ?? "", ...event.setlist.map((s) => s.song.title)]
+      const haystack = [event.event_name, event.venue?.name ?? "", ...event.setlist.map((s) => s.song.title)]
         .join(" ")
         .toLowerCase()
       if (!haystack.includes(needle)) return false

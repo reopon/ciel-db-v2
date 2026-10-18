@@ -5,7 +5,7 @@ import { useActionState } from "react"
 import { Button } from "@/components/ui/button"
 import { updateEventAction } from "@/actions/event-edit"
 import { initialActionState } from "@/lib/action-state"
-import type { EventWithSetlist, Song, SetlistRowPayload } from "@/lib/types"
+import type { EventWithSetlist, Song, SetlistRowPayload, Venue } from "@/lib/types"
 
 interface RowState {
   key: string
@@ -39,9 +39,11 @@ function moveItem<T>(items: T[], index: number, dir: -1 | 1): T[] {
 export function EventEditForm({
   event,
   songs,
+  venues,
 }: {
   event: EventWithSetlist
   songs: Pick<Song, "id" | "slug" | "title">[]
+  venues: Venue[]
 }) {
   const [state, formAction, pending] = useActionState(updateEventAction, initialActionState)
 
@@ -95,7 +97,20 @@ export function EventEditForm({
           <input name="eventName" type="text" required defaultValue={event.event_name} className={inputClass} />
         </Field>
         <Field label="会場">
-          <input name="location" type="text" defaultValue={event.location ?? ""} className={inputClass} />
+          <select name="venueId" defaultValue={event.venue?.id ?? ""} className={inputClass}>
+            <option value="">選択してください</option>
+            {venues.map((venue) => (
+              <option key={venue.id} value={venue.id}>
+                {venue.name}
+              </option>
+            ))}
+          </select>
+          <input
+            name="newVenueName"
+            type="text"
+            placeholder="新しい会場を追加(入力すると上の選択より優先されます)"
+            className={`${inputClass} mt-1.5`}
+          />
         </Field>
         <Field label="日付">
           <input name="date" type="date" required defaultValue={event.date} className={inputClass} />

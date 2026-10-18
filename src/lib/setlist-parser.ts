@@ -38,8 +38,7 @@ export function parseImportText(rawText: string): ParsedImportText {
   }
 
   const isoDate = dateLineIndex !== -1 ? toIsoDate(lines[dateLineIndex]) : null
-  const location =
-    locationLineIndex !== -1 ? lines[locationLineIndex].replace(/^@ ?/, "").trim() : "場所不明"
+  const location = locationLineIndex !== -1 ? lines[locationLineIndex].replace(/^@ ?/, "").trim() : ""
 
   const setlistLines = (setlistMarkerIndex !== -1 ? lines.slice(setlistMarkerIndex + 1) : [])
     .map((line) => line.replace(/^\d+\.?\s*/, "").trim())

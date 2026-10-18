@@ -2,7 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { getSupabaseClient } from "@/lib/supabase"
 import { formatDate } from "@/lib/format"
-import type { Song } from "@/lib/types"
+import type { Song, Venue } from "@/lib/types"
 
 export const dynamic = "force-dynamic"
 
@@ -10,7 +10,7 @@ interface PerformedEvent {
   id: number
   event_name: string
   date: string
-  location: string | null
+  venue: Venue | null
 }
 
 async function fetchSong(slug: string): Promise<Song | null> {
@@ -24,7 +24,7 @@ async function fetchPerformances(songId: number): Promise<PerformedEvent[]> {
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from("setlists")
-    .select("events ( id, event_name, date, location )")
+    .select("events ( id, event_name, date, venue:venues ( id, name ) )")
     .eq("song_id", songId)
 
   if (error || !data) {
@@ -87,7 +87,7 @@ export default async function SongDetailPage({ params }: { params: Promise<{ slu
               <li key={event.id} className="p-2.5">
                 <div>{formatDate(event.date)}</div>
                 <div className="text-muted-foreground">
-                  {event.event_name} @ {event.location || "-"}
+                  {event.event_name} @ {event.venue?.name || "-"}
                 </div>
               </li>
             ))}

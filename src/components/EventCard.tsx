@@ -10,7 +10,7 @@ export function EventCard({ event }: { event: EventWithSetlist }) {
       <CardHeader>
         <CardTitle className="text-base">{event.event_name}</CardTitle>
         <CardDescription>
-          {formatDate(event.date)} @ {event.location || "場所不明"}
+          {formatDate(event.date)} @ {event.venue?.name || "場所不明"}
         </CardDescription>
       </CardHeader>
       <CardContent>

@@ -17,11 +17,16 @@ export interface SetlistEntry {
   song: Song
 }
 
+export interface Venue {
+  id: number
+  name: string
+}
+
 export interface Event {
   id: number
   event_name: string
   date: string
-  location: string | null
+  venue: Venue | null
   notes: string | null
   stage_costume: string | null
 }
