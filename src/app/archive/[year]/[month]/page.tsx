@@ -2,6 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { fetchEvents } from "@/lib/events"
 import { EventCard } from "@/components/EventCard"
+import { MonthCalendar } from "@/components/MonthCalendar"
 
 export const dynamic = "force-dynamic"
 
@@ -23,24 +24,13 @@ export default async function MonthArchivePage({
     (e) => e.date.slice(0, 4) === year && e.date.slice(5, 7) === monthPadded
   )
 
-  const prevDate = new Date(Number(year), monthNum - 2, 1)
-  const nextDate = new Date(Number(year), monthNum, 1)
-  const prev = { year: prevDate.getFullYear(), month: prevDate.getMonth() + 1 }
-  const next = { year: nextDate.getFullYear(), month: nextDate.getMonth() + 1 }
-
   return (
     <main className="max-w-3xl mx-auto px-4 py-8 space-y-8">
-      <div className="flex items-center justify-between">
-        <Link href={`/archive/${prev.year}/${prev.month}`} className="text-sm text-muted-foreground hover:underline">
-          ← {prev.year}年{prev.month}月
-        </Link>
-        <h1 className="text-2xl font-display tracking-wide font-semibold">
-          {year}年{monthNum}月
-        </h1>
-        <Link href={`/archive/${next.year}/${next.month}`} className="text-sm text-muted-foreground hover:underline">
-          {next.year}年{next.month}月 →
-        </Link>
-      </div>
+      <h1 className="text-2xl font-display tracking-wide font-semibold">
+        {year}年{monthNum}月
+      </h1>
+
+      <MonthCalendar year={Number(year)} month={monthNum} events={monthEvents} />
 
       {monthEvents.length === 0 ? (
         <p className="text-sm text-muted-foreground">この月の公演情報はありません</p>

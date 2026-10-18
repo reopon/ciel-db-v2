@@ -33,38 +33,53 @@ export function MonthCalendar({
     return day >= 1 && day <= daysInMonth ? day : null
   })
 
+  const prevDate = new Date(year, month - 2, 1)
+  const nextDate = new Date(year, month, 1)
+  const prevHref = `/archive/${prevDate.getFullYear()}/${prevDate.getMonth() + 1}`
+  const nextHref = `/archive/${nextDate.getFullYear()}/${nextDate.getMonth() + 1}`
+
   return (
-    <div className="rounded-md border overflow-x-auto">
-      <div className="min-w-[560px]">
-        <div className="grid grid-cols-7 divide-x bg-muted text-xs">
-          {WEEKDAY_LABELS.map((w) => (
-            <div key={w} className="p-1.5 text-center font-medium text-muted-foreground">
-              {w}
-            </div>
-          ))}
-        </div>
-        <div className="grid grid-cols-7 divide-x divide-y border-t">
-          {days.map((day, i) => (
-            <div key={i} className={`min-h-24 p-1 ${day == null ? "bg-muted/30" : ""}`}>
-              {day != null && (
-                <>
-                  <div className="text-xs text-muted-foreground mb-0.5">{day}</div>
-                  <div className="space-y-0.5">
-                    {(eventsByDay.get(day) ?? []).map((event) => (
-                      <Link
-                        key={event.id}
-                        href={`/events/${event.id}`}
-                        title={event.event_name}
-                        className="block truncate text-[11px] leading-tight px-1 py-0.5 rounded bg-brand/10 text-brand hover:bg-brand/20"
-                      >
-                        {event.event_name}
-                      </Link>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-          ))}
+    <div className="space-y-2">
+      <div className="flex items-center justify-between text-sm">
+        <Link href={prevHref} className="text-muted-foreground hover:underline">
+          ← {prevDate.getFullYear()}年{prevDate.getMonth() + 1}月
+        </Link>
+        <Link href={nextHref} className="text-muted-foreground hover:underline">
+          {nextDate.getFullYear()}年{nextDate.getMonth() + 1}月 →
+        </Link>
+      </div>
+      <div className="rounded-md border overflow-x-auto">
+        <div className="min-w-[560px]">
+          <div className="grid grid-cols-7 divide-x bg-muted text-xs">
+            {WEEKDAY_LABELS.map((w) => (
+              <div key={w} className="p-1.5 text-center font-medium text-muted-foreground">
+                {w}
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-7 divide-x divide-y border-t">
+            {days.map((day, i) => (
+              <div key={i} className={`min-h-24 p-1 ${day == null ? "bg-muted/30" : ""}`}>
+                {day != null && (
+                  <>
+                    <div className="text-xs text-muted-foreground mb-0.5">{day}</div>
+                    <div className="space-y-0.5">
+                      {(eventsByDay.get(day) ?? []).map((event) => (
+                        <Link
+                          key={event.id}
+                          href={`/events/${event.id}`}
+                          title={event.event_name}
+                          className="block truncate text-[11px] leading-tight px-1 py-0.5 rounded bg-brand/10 text-brand hover:bg-brand/20"
+                        >
+                          {event.event_name}
+                        </Link>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
