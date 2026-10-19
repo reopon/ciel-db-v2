@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { SetlistView } from "@/components/SetlistView"
+import { InteractiveSetlist } from "@/components/InteractiveSetlist"
 import { EventLinks } from "@/components/EventLinks"
 import { formatDate } from "@/lib/format"
 import type { EventWithSetlist } from "@/lib/types"
@@ -14,7 +14,7 @@ export function EventCard({ event }: { event: EventWithSetlist }) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <SetlistView setlist={event.setlist} />
+        <InteractiveSetlist setlist={event.setlist} />
         <EventLinks urls={event.linkUrls} />
       </CardContent>
     </Card>

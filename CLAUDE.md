@@ -67,7 +67,10 @@ Supabase を読むページは `export const dynamic = "force-dynamic"` を必�
 
 **注意**: モーダルの中身は `EventCard` をそのまま使わず、`SetlistView` + 素のリンク(`<a>`のみ、OGPプレビューなし)で自前に組んでいる。`EventLinks`(OGPプレビュー付きリンクカード)は `async function` のServer Componentで、クライアントコンポーネントのツリーに持ち込むと `Only Server Components can be async` でクラッシュするため。OGPプレビュー付きの完全な表示は `/events/[slug]` ページ(サーバーレンダリング)側だけで見られる。
 
-イベントモーダル内のセットリストの曲名クリックも同じザッピング思想で、さらに一段ネストしたモーダル(`selectedSong` state、Dialogを入れ子にしている。Radixのdialogはネスト可能)で曲の披露履歴を表示する(`/music/[slug]` へのフルページ遷移にはしない)。巨大化を避けるため直近5回だけに絞っており(`src/lib/songs.ts` の `fetchSongPerformances(songId, limit)`、全件取得は `/music/[slug]` 側で `limit` 省略)、取得は `src/actions/songs.ts` の `fetchRecentSongPerformancesAction`(読み取り専用だが、クライアントコンポーネントから呼ぶために Server Action にしている — 唯一の読み取り用途のServer Action)。`SetlistView` は `onSongClick` が渡された時だけモーダル化し(`MonthCalendar` 以外、例えば `EventCard` 経由の `/events/[slug]` や `/archive` では未指定のまま通常の `<Link>` 遷移)、外側のイベントモーダルを閉じたら曲モーダルも連動して閉じる。
+### 曲名クリックのモーダル化(`src/components/InteractiveSetlist.tsx`)
+セットリストの曲名クリックも同じザッピング思想で、`/music/[slug]` へのフルページ遷移の代わりにモーダルで曲情報(発売日・作詞・作曲・編曲・振付。`song` オブジェクトに元から含まれているため追加fetch不要)+ 直近5回の披露履歴(巨大化を避けるため絞っている。`src/lib/songs.ts` の `fetchSongPerformances(songId, limit)`、全件取得が要る `/music/[slug]` 側では `limit` 省略)を表示する。披露履歴の取得は `src/actions/songs.ts` の `fetchRecentSongPerformancesAction`(読み取り専用だが、クライアントコンポーネントから呼ぶために Server Action にしている — 唯一の読み取り用途のServer Action)。
+
+この曲モーダルは `SetlistView`(素の`<Link>`版)をラップした `InteractiveSetlist` が自前でstate管理ごと持っており、**`EventCard`(`/events/[slug]`・`/calendar`・トップページ等、素のページ)と `MonthCalendar` のイベントモーダル(入れ子のDialog)の両方で同じコンポーネントを共用**している(`EventCard`・`MonthCalendar`とも `SetlistView` ではなく `InteractiveSetlist` を使う)。`MonthCalendar` 側は外側のイベントDialogが閉じると `{selected && (...)}` ごとアンマウントされるので、曲モーダルのstateも連動して自然にリセットされる(明示的な後始末コードは不要)。
 
 ### デザイントークン
 `src/app/globals.css` に Option A "Cool Precision"(紺/白/エレクトリックブルー)パレットを `:root` / `.dark` で定義、`--brand` が強調色。フォントは `next/font/google` 経由で Oswald(`--font-oswald` / `font-display`、見出し用)と Zen Kaku Gothic New(`--font-zen-kaku-gothic-new` / `font-sans`、本文用)。リンクは `text-brand underline underline-offset-2 decoration-brand/40 hover:decoration-brand` で統一し、クリック可否を視覚的に明示する。
