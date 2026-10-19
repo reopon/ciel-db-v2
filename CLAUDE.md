@@ -32,7 +32,7 @@ npm run lint     # eslint
 
 ### スキーマ(`migrations/*.sql`が正、順に適用)
 - `songs`: id, slug(ランダム8文字、URL用、`/music/[slug]`), title, release_date, lyricist, composer, arranger, choreographer, notes, **is_repertoire**(bool — `/music` の一覧に出す「持ち曲」かどうかのフラグ。生誕イベント等で数回しかやらないカバー曲を除外するためのもので、「カバー曲かどうか」とは別概念。**このカラムは migrations に SQL ファイルがなく、SQL Editor から直接追加されたもの**なので、スキーマの実態は Supabase 側が正、migrations ディレクトリだけを見ても追いつかない場合がある)
-- `events`: id, slug(ランダム8文字、`0010_event_slug.sql`で追加、公開URL`/events/[slug]`用。**管理編集ページ`/events/[id]/edit`はあえてID方式のまま**、検索フォームで打ち込む内部管理用キーなのでスラッグ化していない), event_name, date, venue_id(`venues` へのFK。表記ゆれ対策で`0008`より前は自由記述の`location`だった), notes
+- `events`: id, slug(ランダム8文字、`0010_event_slug.sql`で追加、公開URL`/events/[slug]`用。**管理編集ページ`/events/edit/[id]`はあえてID方式のまま**、検索フォームで打ち込む内部管理用キーなのでスラッグ化していない), event_name, date, venue_id(`venues` へのFK。表記ゆれ対策で`0008`より前は自由記述の`location`だった), notes
 - `venues`: id, name(unique), slug(ランダム8文字、`0009_venue_slug.sql`で追加、`/venues/[slug]`用) — `0008_venues.sql` で `events.location` から名寄せして移行。同じビル内でも別フロア/別ステージは別会場として区別している(例: GOTANDA G4とG7)。`events.location` カラム自体は突き合わせ用にまだ残っている(アプリ側はもう参照しない、削除は検証後に別migrationで行う予定)。新規会場の作成は `src/lib/events.ts` の `findOrCreateVenueId`(名前で検索→無ければinsert)を通す。
 - `setlists`: id, event_id, song_id, order(欠番なしの曲番号), note_before, note_after
 - `event_links`: id, event_id, url, order — イベントに紐づくX投稿/ブログ等のURL、OGPプレビュー表示用
@@ -48,8 +48,12 @@ Supabase を読むページは `export const dynamic = "force-dynamic"` を必�
 - `/register`: 1行1曲手入力フォーム。現在ナビ(`src/app/layout.tsx` の `navLinks`)からは外しているが、ソース・ルートとも削除していない。会場は `<input list>` + `<datalist>` で既存 `venues` をオートコンプリートしつつ自由入力も可能(`findOrCreateVenueId` が同名なら再利用、無ければ新規作成)。ページ自体は Server Component(`fetchVenuesForPicker` 用)、フォーム部分だけ `src/components/RegisterForm.tsx` に切り出したクライアントコンポーネント。
 - `src/lib/ogp.ts`: イベントリンクのOGPプレビュー用に `<meta property="og:...">` を正規表現で抜くだけの軽量スクレイパー(外部HTMLパーサ依存なし)。
 
-### イベント編集(`/events/edit`, `/events/[id]/edit`)
-`/import`・`/register` が新規作成専用なのに対し、こちらは既存イベントを後から更新するための経路(「先にイベントを登録→開催後にセットリストを埋める」運用のため)。`src/app/(admin)/` ルートグループ配下にあり、`(admin)/layout.tsx` が `ADMIN_PASSWORD`(簡易パスワード、Supabaseの書き込みRLSが元々anonキーに開放されているためUIへの軽い鍵でしかないことに注意)によるクッキー認証をかけている。`/events/edit` はID or 日付でイベントを検索(`<form method="get">`、Server Action不要)、`/events/[id]/edit` が本体フォーム。保存(`src/actions/event-edit.ts` の `updateEventAction`)はセットリスト・関連URLとも**差分更新ではなく全削除→再insert**という割り切った実装(低頻度の個人管理ツールのため)。ナビゲーションには出していない(`/register` と同じ扱い)。
+### イベント編集(`/events/edit`, `/events/edit/[id]`)
+`/import`・`/register` が新規作成専用なのに対し、こちらは既存イベントを後から更新するための経路(「先にイベントを登録→開催後にセットリストを埋める」運用のため)。`src/app/(admin)/` ルートグループ配下にあり、`(admin)/layout.tsx` が `ADMIN_PASSWORD`(簡易パスワード、Supabaseの書き込みRLSが元々anonキーに開放されているためUIへの軽い鍵でしかないことに注意)によるクッキー認証をかけている。`/events/edit` はID or 日付でイベントを検索(`<form method="get">`、Server Action不要)、`/events/edit/[id]` が本体フォーム。
+
+**`/events/[id]/edit` ではなく `/events/edit/[id]` という構成にしている理由**: 公開ページ`/events/[slug]`と動的セグメント名が競合する(`/events/` 直下の最初の動的セグメントの名前はルートグループをまたいで統一する必要があり、`[slug]` と `[id]` が共存できない)。`npm run build` では検出されないが `npm run dev` で `Error: You cannot use different slug names for the same dynamic path` として起動時エラーになるため、`edit` という静的セグメントを先に挟むことで回避している。
+
+保存(`src/actions/event-edit.ts` の `updateEventAction`)はセットリスト・関連URLとも**差分更新ではなく全削除→再insert**という割り切った実装(低頻度の個人管理ツールのため)。ナビゲーションには出していない(`/register` と同じ扱い)。
 
 ### 会場別ページ(`/venues`, `/venues/[slug]`)
 `/music`・`/music/composers` 等と同じ構造。一覧(`/venues`)は `fetchVenuesWithEventCounts`(venuesとeventsを別クエリで取得してJS側でカウント集計、`groupByYearMonth`等と同じ「単純な集計はJSでやる」という既存方針を踏襲)で公演数の多い順にテーブル表示、詳細(`/venues/[slug]`)はその会場の `EventCard` を日付降順で並べる(披露履歴のような軽量リストではなく、カレンダーページ(`/calendar`)と同じ「その会場で何が起きたか」が主目的のページなのでフルの `EventCard` を採用)。ナビにも「会場別」として出している(`/music/composers`等とは違い、ユーザー自身が要望した導線のため)。
@@ -59,7 +63,7 @@ Supabase を読むページは `export const dynamic = "force-dynamic"` を必�
 
 トップページ(今月)と `/calendar/[year]/[month]` の両方で `MonthCalendar` を使い、月7列グリッド(TimeTree/Googleカレンダー風、月曜始まり)を表示する。コンポーネント自身が前月/次月リンク(`/calendar/{year}/{month}` へ)を内蔵しているので、カレンダーの矢印をたどって月を遡っても常にカレンダー付きのページに着地する連鎖になる(`calendar/[year]/[month]/page.tsx` 側は以前持っていた前月/次月リンクの実装を削除し、`MonthCalendar` に委譲している)。グリッドは画面幅に収まるようレスポンシブ(`sm:`で余白・文字サイズを変える、横スクロールはさせない)。
 
-各日のイベントラベルは `"use client"` の `MonthCalendar` 内でモーダル(`src/components/ui/dialog.tsx`)を開く(ザッピングしたいという要望のため、フルページ遷移にはしていない)。クリックは `href="/events/[slug]"` を持つ実リンクのまま `onClick` で `preventDefault` しているだけなので、Ctrl/Cmd+クリックや右クリック→リンクをコピーは素のリンクとして機能し、SNS等への共有パーマリンクとして `/events/[slug]`(新規・パスワード不要の公開ページ)が独立して成立する。`/events/[slug]` は `(admin)/events/[id]/edit`(編集用、パスワード保護、あえてID方式)とは別物で、ルートグループの外にあるのでパスも衝突しない。
+各日のイベントラベルは `"use client"` の `MonthCalendar` 内でモーダル(`src/components/ui/dialog.tsx`)を開く(ザッピングしたいという要望のため、フルページ遷移にはしていない)。クリックは `href="/events/[slug]"` を持つ実リンクのまま `onClick` で `preventDefault` しているだけなので、Ctrl/Cmd+クリックや右クリック→リンクをコピーは素のリンクとして機能し、SNS等への共有パーマリンクとして `/events/[slug]`(新規・パスワード不要の公開ページ)が独立して成立する。`/events/[slug]` は `(admin)/events/edit/[id]`(編集用、パスワード保護、あえてID方式)とは別物。
 
 **注意**: モーダルの中身は `EventCard` をそのまま使わず、`SetlistView` + 素のリンク(`<a>`のみ、OGPプレビューなし)で自前に組んでいる。`EventLinks`(OGPプレビュー付きリンクカード)は `async function` のServer Componentで、クライアントコンポーネントのツリーに持ち込むと `Only Server Components can be async` でクラッシュするため。OGPプレビュー付きの完全な表示は `/events/[slug]` ページ(サーバーレンダリング)側だけで見られる。
 

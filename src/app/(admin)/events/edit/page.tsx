@@ -18,14 +18,14 @@ export default async function EventLookupPage({
   let idNotFound = false
   if (id) {
     const event = await fetchEventById(Number(id))
-    if (event) redirect(`/events/${event.id}/edit`)
+    if (event) redirect(`/events/edit/${event.id}`)
     idNotFound = true
   }
 
   let dateMatches: Awaited<ReturnType<typeof fetchEventsByDate>> = []
   if (date) {
     dateMatches = await fetchEventsByDate(date)
-    if (dateMatches.length === 1) redirect(`/events/${dateMatches[0].id}/edit`)
+    if (dateMatches.length === 1) redirect(`/events/edit/${dateMatches[0].id}`)
   }
 
   return (
@@ -59,7 +59,7 @@ export default async function EventLookupPage({
             {dateMatches.map((e) => (
               <li key={e.id}>
                 <Link
-                  href={`/events/${e.id}/edit`}
+                  href={`/events/edit/${e.id}`}
                   className="block p-2 rounded-md border hover:bg-accent/50 text-sm"
                 >
                   <span className="font-medium">{e.event_name}</span>
