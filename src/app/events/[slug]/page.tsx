@@ -13,7 +13,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ sl
   return (
     <main className="max-w-xl mx-auto px-4 py-10 space-y-6">
       <Link
-        href="/archive"
+        href="/calendar"
         className="text-sm text-brand underline underline-offset-2 decoration-brand/40 hover:decoration-brand"
       >
         ← カレンダーに戻る

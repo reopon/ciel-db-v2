@@ -53,7 +53,7 @@ export default async function TopPage() {
             {recentMonths.map(([key, { year, month }]) => (
               <Link
                 key={key}
-                href={`/archive/${year}/${Number(month)}`}
+                href={`/calendar/${year}/${Number(month)}`}
                 className="px-3 py-1.5 rounded-md border text-sm hover:bg-accent/50"
               >
                 {year}年{Number(month)}月

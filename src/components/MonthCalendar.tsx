@@ -44,8 +44,8 @@ export function MonthCalendar({
 
   const prevDate = new Date(year, month - 2, 1)
   const nextDate = new Date(year, month, 1)
-  const prevHref = `/archive/${prevDate.getFullYear()}/${prevDate.getMonth() + 1}`
-  const nextHref = `/archive/${nextDate.getFullYear()}/${nextDate.getMonth() + 1}`
+  const prevHref = `/calendar/${prevDate.getFullYear()}/${prevDate.getMonth() + 1}`
+  const nextHref = `/calendar/${nextDate.getFullYear()}/${nextDate.getMonth() + 1}`
 
   // Clicking an event opens it in a modal (for quick zapping between
   // events without leaving the calendar) instead of navigating away. The

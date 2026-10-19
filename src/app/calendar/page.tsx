@@ -7,7 +7,7 @@ import type { EventWithSetlist } from "@/lib/types"
 
 export const dynamic = "force-dynamic"
 
-export default async function ArchivePage({
+export default async function CalendarPage({
   searchParams,
 }: {
   searchParams: Promise<{ q?: string; year?: string }>
@@ -36,7 +36,7 @@ export default async function ArchivePage({
     <main className="max-w-3xl mx-auto px-4 py-8 space-y-8">
       <h1 className="text-2xl font-display tracking-wide font-semibold">カレンダー</h1>
 
-      <form className="flex flex-wrap gap-2 items-center" action="/archive" method="get">
+      <form className="flex flex-wrap gap-2 items-center" action="/calendar" method="get">
         <input
           type="search"
           name="q"
@@ -61,7 +61,7 @@ export default async function ArchivePage({
         </Button>
         {hasFilter && (
           <Button asChild type="button" variant="ghost" size="sm">
-            <Link href="/archive">クリア</Link>
+            <Link href="/calendar">クリア</Link>
           </Button>
         )}
       </form>
@@ -76,7 +76,7 @@ export default async function ArchivePage({
             <div className="flex items-baseline justify-between mb-3">
               <h2 className="text-sm font-semibold text-muted-foreground">{monthKeyToLabel(key)}</h2>
               <Link
-                href={`/archive/${key.split("-")[0]}/${Number(key.split("-")[1])}`}
+                href={`/calendar/${key.split("-")[0]}/${Number(key.split("-")[1])}`}
                 className="text-xs text-muted-foreground hover:underline"
               >
                 この月だけのページ →
