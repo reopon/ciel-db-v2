@@ -34,7 +34,7 @@ export default async function ArchivePage({
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-8 space-y-8">
-      <h1 className="text-2xl font-display tracking-wide font-semibold">アーカイブ</h1>
+      <h1 className="text-2xl font-display tracking-wide font-semibold">カレンダー</h1>
 
       <form className="flex flex-wrap gap-2 items-center" action="/archive" method="get">
         <input

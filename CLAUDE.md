@@ -52,9 +52,11 @@ Supabase を読むページは `export const dynamic = "force-dynamic"` を必�
 `/import`・`/register` が新規作成専用なのに対し、こちらは既存イベントを後から更新するための経路(「先にイベントを登録→開催後にセットリストを埋める」運用のため)。`src/app/(admin)/` ルートグループ配下にあり、`(admin)/layout.tsx` が `ADMIN_PASSWORD`(簡易パスワード、Supabaseの書き込みRLSが元々anonキーに開放されているためUIへの軽い鍵でしかないことに注意)によるクッキー認証をかけている。`/events/edit` はID or 日付でイベントを検索(`<form method="get">`、Server Action不要)、`/events/[id]/edit` が本体フォーム。保存(`src/actions/event-edit.ts` の `updateEventAction`)はセットリスト・関連URLとも**差分更新ではなく全削除→再insert**という割り切った実装(低頻度の個人管理ツールのため)。ナビゲーションには出していない(`/register` と同じ扱い)。
 
 ### 会場別ページ(`/venues`, `/venues/[slug]`)
-`/music`・`/music/composers` 等と同じ構造。一覧(`/venues`)は `fetchVenuesWithEventCounts`(venuesとeventsを別クエリで取得してJS側でカウント集計、`groupByYearMonth`等と同じ「単純な集計はJSでやる」という既存方針を踏襲)で公演数の多い順にテーブル表示、詳細(`/venues/[slug]`)はその会場の `EventCard` を日付降順で並べる(披露履歴のような軽量リストではなく、アーカイブページと同じ「その会場で何が起きたか」が主目的のページなのでフルの `EventCard` を採用)。ナビにも「会場別」として出している(`/music/composers`等とは違い、ユーザー自身が要望した導線のため)。
+`/music`・`/music/composers` 等と同じ構造。一覧(`/venues`)は `fetchVenuesWithEventCounts`(venuesとeventsを別クエリで取得してJS側でカウント集計、`groupByYearMonth`等と同じ「単純な集計はJSでやる」という既存方針を踏襲)で公演数の多い順にテーブル表示、詳細(`/venues/[slug]`)はその会場の `EventCard` を日付降順で並べる(披露履歴のような軽量リストではなく、カレンダーページ(`/archive`)と同じ「その会場で何が起きたか」が主目的のページなのでフルの `EventCard` を採用)。ナビにも「会場別」として出している(`/music/composers`等とは違い、ユーザー自身が要望した導線のため)。
 
 ### カレンダーUI(`src/components/MonthCalendar.tsx`)と公開イベント詳細(`/events/[slug]`)
+**ナビ表示名は「アーカイブ」→「カレンダー」に変更済み(未来のイベントも載るため「アーカイブ」が体を表さなくなった)。ルートパス自体は `/archive` のまま変更していない**(URL変更はスコープ外、表示名のみの変更)。
+
 トップページ(今月)と `/archive/[year]/[month]` の両方で `MonthCalendar` を使い、月7列グリッド(TimeTree/Googleカレンダー風、月曜始まり)を表示する。コンポーネント自身が前月/次月リンク(`/archive/{year}/{month}` へ)を内蔵しているので、カレンダーの矢印をたどって月を遡っても常にカレンダー付きのページに着地する連鎖になる(`archive/[year]/[month]/page.tsx` 側は以前持っていた前月/次月リンクの実装を削除し、`MonthCalendar` に委譲している)。グリッドは画面幅に収まるようレスポンシブ(`sm:`で余白・文字サイズを変える、横スクロールはさせない)。
 
 各日のイベントラベルは `"use client"` の `MonthCalendar` 内でモーダル(`src/components/ui/dialog.tsx`)を開く(ザッピングしたいという要望のため、フルページ遷移にはしていない)。クリックは `href="/events/[slug]"` を持つ実リンクのまま `onClick` で `preventDefault` しているだけなので、Ctrl/Cmd+クリックや右クリック→リンクをコピーは素のリンクとして機能し、SNS等への共有パーマリンクとして `/events/[slug]`(新規・パスワード不要の公開ページ)が独立して成立する。`/events/[slug]` は `(admin)/events/[id]/edit`(編集用、パスワード保護、あえてID方式)とは別物で、ルートグループの外にあるのでパスも衝突しない。

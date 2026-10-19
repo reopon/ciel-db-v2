@@ -44,7 +44,7 @@ export default async function MonthArchivePage({
 
       <div className="pt-4 border-t">
         <Link href="/archive" className="text-sm text-muted-foreground hover:underline">
-          ← アーカイブ一覧(検索)に戻る
+          ← カレンダー一覧(検索)に戻る
         </Link>
       </div>
     </main>

@@ -16,7 +16,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ sl
         href="/archive"
         className="text-sm text-brand underline underline-offset-2 decoration-brand/40 hover:decoration-brand"
       >
-        ← アーカイブに戻る
+        ← カレンダーに戻る
       </Link>
       <EventCard event={event} />
     </main>
