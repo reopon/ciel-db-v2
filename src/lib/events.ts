@@ -20,7 +20,7 @@ interface RawEvent extends Omit<Event, "venue"> {
 }
 
 const EVENT_SELECT = `
-  id, event_name, date, notes, stage_costume,
+  id, slug, event_name, date, notes, stage_costume,
   venue:venues ( id, name, slug ),
   setlists (
     order, note_before, note_after,
@@ -65,6 +65,19 @@ export async function fetchEvents(): Promise<EventWithSetlist[]> {
 export async function fetchEventById(id: number): Promise<EventWithSetlist | null> {
   const supabase = getSupabaseClient()
   const { data, error } = await supabase.from("events").select(EVENT_SELECT).eq("id", id).maybeSingle()
+
+  if (error) {
+    console.error(error)
+    return null
+  }
+  if (!data) return null
+
+  return mapRawEvent(data as unknown as RawEvent)
+}
+
+export async function fetchEventBySlug(slug: string): Promise<EventWithSetlist | null> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase.from("events").select(EVENT_SELECT).eq("slug", slug).maybeSingle()
 
   if (error) {
     console.error(error)

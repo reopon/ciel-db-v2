@@ -49,7 +49,7 @@ export function MonthCalendar({
 
   // Clicking an event opens it in a modal (for quick zapping between
   // events without leaving the calendar) instead of navigating away. The
-  // href stays a real link to /events/[id] so the permalink still works
+  // href stays a real link to /events/[slug] so the permalink still works
   // for ctrl/cmd-click, middle-click, right-click-copy-link, and anyone
   // following a shared link directly.
   const handleEventClick = (e: React.MouseEvent, event: EventWithSetlist) => {
@@ -86,7 +86,7 @@ export function MonthCalendar({
                     {(eventsByDay.get(day) ?? []).map((event) => (
                       <Link
                         key={event.id}
-                        href={`/events/${event.id}`}
+                        href={`/events/${event.slug}`}
                         title={event.event_name}
                         onClick={(e) => handleEventClick(e, event)}
                         className="block truncate text-[9px] sm:text-[11px] leading-tight px-0.5 sm:px-1 py-0.5 rounded bg-brand/10 text-brand hover:bg-brand/20"
@@ -104,9 +104,9 @@ export function MonthCalendar({
 
       {/* EventLinks (OGP preview cards) is an async Server Component, which
           can't render inside this client-side modal — it only works on the
-          server-rendered /events/[id] page. The modal shows plain link text
-          instead, favoring a fast "quick zap" preview over rich previews;
-          the OGP cards are one tap away via the permalink below. */}
+          server-rendered /events/[slug] page. The modal shows plain link
+          text instead, favoring a fast "quick zap" preview over rich
+          previews; the OGP cards are one tap away via the permalink below. */}
       <Dialog open={selected != null} onOpenChange={(open) => !open && setSelected(null)}>
         <DialogContent className="max-w-xl">
           {selected && (
@@ -139,7 +139,7 @@ export function MonthCalendar({
                 </CardContent>
               </Card>
               <Link
-                href={`/events/${selected.id}`}
+                href={`/events/${selected.slug}`}
                 className="text-xs text-muted-foreground hover:underline"
               >
                 このイベントのページを開く(共有用URL、リンクのプレビュー付き) →

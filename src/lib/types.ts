@@ -25,6 +25,7 @@ export interface Venue {
 
 export interface Event {
   id: number
+  slug: string
   event_name: string
   date: string
   venue: Venue | null
