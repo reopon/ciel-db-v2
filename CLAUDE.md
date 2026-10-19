@@ -55,7 +55,11 @@ Supabase を読むページは `export const dynamic = "force-dynamic"` を必�
 `/music`・`/music/composers` 等と同じ構造。一覧(`/venues`)は `fetchVenuesWithEventCounts`(venuesとeventsを別クエリで取得してJS側でカウント集計、`groupByYearMonth`等と同じ「単純な集計はJSでやる」という既存方針を踏襲)で公演数の多い順にテーブル表示、詳細(`/venues/[slug]`)はその会場の `EventCard` を日付降順で並べる(披露履歴のような軽量リストではなく、アーカイブページと同じ「その会場で何が起きたか」が主目的のページなのでフルの `EventCard` を採用)。ナビにも「会場別」として出している(`/music/composers`等とは違い、ユーザー自身が要望した導線のため)。
 
 ### カレンダーUI(`src/components/MonthCalendar.tsx`)と公開イベント詳細(`/events/[id]`)
-トップページ(今月)と `/archive/[year]/[month]` の両方で `MonthCalendar` を使い、月7列グリッド(TimeTree/Googleカレンダー風、月曜始まり)を表示する。コンポーネント自身が前月/次月リンク(`/archive/{year}/{month}` へ)を内蔵しているので、カレンダーの矢印をたどって月を遡っても常にカレンダー付きのページに着地する連鎖になる(`archive/[year]/[month]/page.tsx` 側は以前持っていた前月/次月リンクの実装を削除し、`MonthCalendar` に委譲している)。各日のイベントラベルは `/events/[id]`(新規・パスワード不要の公開ページ)へリンクする。`/events/[id]` は `(admin)/events/[id]/edit`(編集用、パスワード保護)とは別物で、ルートグループの外にあるため同じ`[id]`セグメントでもURLは衝突しない(`/events/5` と `/events/5/edit` は別ルート)。グリッドはモバイルでは `overflow-x-auto` で横スクロールする(7列は狭い画面だと潰れるため)。
+トップページ(今月)と `/archive/[year]/[month]` の両方で `MonthCalendar` を使い、月7列グリッド(TimeTree/Googleカレンダー風、月曜始まり)を表示する。コンポーネント自身が前月/次月リンク(`/archive/{year}/{month}` へ)を内蔵しているので、カレンダーの矢印をたどって月を遡っても常にカレンダー付きのページに着地する連鎖になる(`archive/[year]/[month]/page.tsx` 側は以前持っていた前月/次月リンクの実装を削除し、`MonthCalendar` に委譲している)。グリッドは画面幅に収まるようレスポンシブ(`sm:`で余白・文字サイズを変える、横スクロールはさせない)。
+
+各日のイベントラベルは `"use client"` の `MonthCalendar` 内でモーダル(`src/components/ui/dialog.tsx`)を開く(ザッピングしたいという要望のため、フルページ遷移にはしていない)。クリックは `href="/events/[id]"` を持つ実リンクのまま `onClick` で `preventDefault` しているだけなので、Ctrl/Cmd+クリックや右クリック→リンクをコピーは素のリンクとして機能し、SNS等への共有パーマリンクとして `/events/[id]`(新規・パスワード不要の公開ページ)が独立して成立する。`/events/[id]` は `(admin)/events/[id]/edit`(編集用、パスワード保護)とは別物で、ルートグループの外にあるため同じ`[id]`セグメントでもURLは衝突しない。
+
+**注意**: モーダルの中身は `EventCard` をそのまま使わず、`SetlistView` + 素のリンク(`<a>`のみ、OGPプレビューなし)で自前に組んでいる。`EventLinks`(OGPプレビュー付きリンクカード)は `async function` のServer Componentで、クライアントコンポーネントのツリーに持ち込むと `Only Server Components can be async` でクラッシュするため。OGPプレビュー付きの完全な表示は `/events/[id]` ページ(サーバーレンダリング)側だけで見られる。
 
 ### デザイントークン
 `src/app/globals.css` に Option A "Cool Precision"(紺/白/エレクトリックブルー)パレットを `:root` / `.dark` で定義、`--brand` が強調色。フォントは `next/font/google` 経由で Oswald(`--font-oswald` / `font-display`、見出し用)と Zen Kaku Gothic New(`--font-zen-kaku-gothic-new` / `font-sans`、本文用)。リンクは `text-brand underline underline-offset-2 decoration-brand/40 hover:decoration-brand` で統一し、クリック可否を視覚的に明示する。
