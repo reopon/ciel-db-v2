@@ -1,17 +1,11 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { getSupabaseClient } from "@/lib/supabase"
+import { fetchSongPerformances } from "@/lib/songs"
 import { formatDate } from "@/lib/format"
-import type { Song, Venue } from "@/lib/types"
+import type { Song } from "@/lib/types"
 
 export const dynamic = "force-dynamic"
-
-interface PerformedEvent {
-  id: number
-  event_name: string
-  date: string
-  venue: Venue | null
-}
 
 async function fetchSong(slug: string): Promise<Song | null> {
   const supabase = getSupabaseClient()
@@ -20,32 +14,13 @@ async function fetchSong(slug: string): Promise<Song | null> {
   return data
 }
 
-async function fetchPerformances(songId: number): Promise<PerformedEvent[]> {
-  const supabase = getSupabaseClient()
-  const { data, error } = await supabase
-    .from("setlists")
-    .select("events ( id, event_name, date, venue:venues ( id, name ) )")
-    .eq("song_id", songId)
-
-  if (error || !data) {
-    console.error(error)
-    return []
-  }
-
-  const events = (data as unknown as { events: PerformedEvent }[])
-    .map((row) => row.events)
-    .filter(Boolean)
-
-  return events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-}
-
 export default async function SongDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
 
   const song = await fetchSong(slug)
   if (!song) notFound()
 
-  const performances = await fetchPerformances(song.id)
+  const performances = await fetchSongPerformances(song.id)
 
   return (
     <main className="max-w-xl mx-auto px-4 py-10 space-y-6">

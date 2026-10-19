@@ -1,8 +1,17 @@
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
-import type { SetlistEntry } from "@/lib/types"
+import type { SetlistEntry, Song } from "@/lib/types"
 
-export function SetlistView({ setlist }: { setlist: SetlistEntry[] }) {
+// onSongClick is optional so the default usage (EventCard on the
+// server-rendered pages) keeps plain navigation to /music/[slug]; only the
+// calendar's modal passes a handler, matching the event-click "zap" pattern.
+export function SetlistView({
+  setlist,
+  onSongClick,
+}: {
+  setlist: SetlistEntry[]
+  onSongClick?: (e: React.MouseEvent, song: Song) => void
+}) {
   if (setlist.length === 0) {
     return <p className="text-sm text-muted-foreground">セットリスト未登録</p>
   }
@@ -18,6 +27,7 @@ export function SetlistView({ setlist }: { setlist: SetlistEntry[] }) {
             </span>
             <Link
               href={`/music/${entry.song.slug}`}
+              onClick={onSongClick ? (e) => onSongClick(e, entry.song) : undefined}
               className="text-sm text-brand underline underline-offset-2 decoration-brand/40 hover:decoration-brand"
             >
               {entry.song.title}

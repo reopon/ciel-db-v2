@@ -5,8 +5,15 @@ import Link from "next/link"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { SetlistView } from "@/components/SetlistView"
+import { fetchRecentSongPerformancesAction } from "@/actions/songs"
 import { formatDate } from "@/lib/format"
-import type { EventWithSetlist } from "@/lib/types"
+import type { SongPerformance } from "@/lib/songs"
+import type { EventWithSetlist, Song } from "@/lib/types"
+
+interface SelectedSong {
+  song: Song
+  performances: SongPerformance[] | null // null while loading
+}
 
 const WEEKDAY_LABELS = ["月", "火", "水", "木", "金", "土", "日"]
 
@@ -24,6 +31,7 @@ export function MonthCalendar({
   events: EventWithSetlist[]
 }) {
   const [selected, setSelected] = useState<EventWithSetlist | null>(null)
+  const [selectedSong, setSelectedSong] = useState<SelectedSong | null>(null)
 
   const firstOfMonth = new Date(year, month - 1, 1)
   const daysInMonth = new Date(year, month, 0).getDate()
@@ -56,6 +64,19 @@ export function MonthCalendar({
     if (e.metaKey || e.ctrlKey || e.shiftKey) return
     e.preventDefault()
     setSelected(event)
+  }
+
+  // Same "zap" pattern, nested one level deeper: a song clicked inside the
+  // event modal opens its own modal with recent performances instead of
+  // navigating to /music/[slug]. Limited to 5 (fetchRecentSongPerformancesAction)
+  // so this nested dialog doesn't grow as tall as the full song page.
+  const handleSongClick = (e: React.MouseEvent, song: Song) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey) return
+    e.preventDefault()
+    setSelectedSong({ song, performances: null })
+    fetchRecentSongPerformancesAction(song.id).then((performances) => {
+      setSelectedSong((current) => (current?.song.id === song.id ? { song, performances } : current))
+    })
   }
 
   return (
@@ -107,7 +128,15 @@ export function MonthCalendar({
           server-rendered /events/[slug] page. The modal shows plain link
           text instead, favoring a fast "quick zap" preview over rich
           previews; the OGP cards are one tap away via the permalink below. */}
-      <Dialog open={selected != null} onOpenChange={(open) => !open && setSelected(null)}>
+      <Dialog
+        open={selected != null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelected(null)
+            setSelectedSong(null)
+          }
+        }}
+      >
         <DialogContent className="max-w-xl">
           {selected && (
             <>
@@ -120,7 +149,7 @@ export function MonthCalendar({
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="px-0">
-                  <SetlistView setlist={selected.setlist} />
+                  <SetlistView setlist={selected.setlist} onSongClick={handleSongClick} />
                   {selected.linkUrls.length > 0 && (
                     <div className="space-y-1 pt-3 mt-3 border-t">
                       {selected.linkUrls.map((url) => (
@@ -143,6 +172,41 @@ export function MonthCalendar({
                 className="text-xs text-muted-foreground hover:underline"
               >
                 このイベントのページを開く(共有用URL、リンクのプレビュー付き) →
+              </Link>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={selectedSong != null} onOpenChange={(open) => !open && setSelectedSong(null)}>
+        <DialogContent className="max-w-sm">
+          {selectedSong && (
+            <>
+              <DialogTitle className="text-base">{selectedSong.song.title}</DialogTitle>
+              {selectedSong.performances == null ? (
+                <p className="text-sm text-muted-foreground">読み込み中...</p>
+              ) : selectedSong.performances.length === 0 ? (
+                <p className="text-sm text-muted-foreground">披露履歴はまだ登録されていません</p>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground">直近{selectedSong.performances.length}回の披露履歴</p>
+                  <ul className="divide-y rounded-md border text-sm">
+                    {selectedSong.performances.map((p) => (
+                      <li key={p.id} className="p-2">
+                        <div>{formatDate(p.date)}</div>
+                        <div className="text-muted-foreground text-xs">
+                          {p.event_name} @ {p.venue?.name || "場所不明"}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <Link
+                href={`/music/${selectedSong.song.slug}`}
+                className="text-xs text-muted-foreground hover:underline"
+              >
+                この曲の全履歴を見る →
               </Link>
             </>
           )}
