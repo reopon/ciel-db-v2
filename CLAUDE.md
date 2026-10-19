@@ -43,6 +43,9 @@ npm run lint     # eslint
 ### Vercel ビルドの静的生成に注意
 Supabase を読むページは `export const dynamic = "force-dynamic"` を必ず付ける。`export const revalidate = 0` では不十分で、Vercel本番ビルドだけが静的生成を試みて `supabaseUrl is required` で失敗する(ローカル `next build` では再現しない)。新しくページを追加したら既存ページに揃えてこれを付ける。
 
+### ページ遷移中のローディング表示(`src/app/loading.tsx`)
+全ページが `force-dynamic`(= 毎回Supabaseにfetchしてから描画)なので、遷移が体感できるようルート直下に1つだけ `loading.tsx` を置いている。App RouterはNext.js自身の規約でこれを`layout.tsx`の`children`を包むSuspenseのfallbackとして自動的に使う(個別ページ側は何もしなくてよい)ので、サイト全体の遷移を1ファイルでカバーできる。ヘッダー/ナビは`layout.tsx`側でこのSuspenseの外にあるため遷移中も表示され続け、`main`の中身だけがスピナーに置き換わる。ページ単位で別の `loading.tsx` を置けば、その配下だけ上書きできる。
+
 ### インポート経路
 - `/import`: `#しえるセットリスト` 形式のテキストを貼り付けて `parseImportText` で日付/会場/曲リストに分解し登録。X投稿URLを貼ると `src/lib/twitter-oembed.ts`(公開oEmbedエンドポイント、APIキー不要、1件のURLのみ対応)で本文を取得してテキスト欄に流し込める。
 - `/register`: 1行1曲手入力フォーム。現在ナビ(`src/app/layout.tsx` の `navLinks`)からは外しているが、ソース・ルートとも削除していない。会場は `<input list>` + `<datalist>` で既存 `venues` をオートコンプリートしつつ自由入力も可能(`findOrCreateVenueId` が同名なら再利用、無ければ新規作成)。ページ自体は Server Component(`fetchVenuesForPicker` 用)、フォーム部分だけ `src/components/RegisterForm.tsx` に切り出したクライアントコンポーネント。
