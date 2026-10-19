@@ -108,6 +108,7 @@ export async function updateEventAction(_prevState: ActionState, formData: FormD
   }
 
   revalidatePath("/")
+  revalidatePath("/events")
   revalidatePath("/calendar")
 
   return { status: "success", message: "更新しました！" }

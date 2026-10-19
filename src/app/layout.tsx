@@ -22,6 +22,7 @@ export const metadata: Metadata = {
 
 const navLinks = [
   { href: "/", label: "今月の公演" },
+  { href: "/events", label: "イベント" },
   { href: "/calendar", label: "カレンダー" },
   { href: "/music", label: "楽曲" },
   { href: "/venues", label: "会場別" },

@@ -44,7 +44,7 @@ export default async function MonthCalendarPage({
 
       <div className="pt-4 border-t">
         <Link href="/calendar" className="text-sm text-muted-foreground hover:underline">
-          ← カレンダー一覧(検索)に戻る
+          ← カレンダーに戻る
         </Link>
       </div>
     </main>
