@@ -71,6 +71,8 @@ URL遍歴: 旧「アーカイブ」(`/archive`、検索+月別`EventCard`一覧)
 
 各日のイベントラベルは `"use client"` の `MonthCalendar` 内でモーダル(`src/components/ui/dialog.tsx`)を開く(ザッピングしたいという要望のため、フルページ遷移にはしていない)。クリックは `href="/events/[slug]"` を持つ実リンクのまま `onClick` で `preventDefault` しているだけなので、Ctrl/Cmd+クリックや右クリック→リンクをコピーは素のリンクとして機能し、SNS等への共有パーマリンクとして `/events/[slug]`(新規・パスワード不要の公開ページ)が独立して成立する。`/events/[slug]` は `(admin)/events/edit/[id]`(編集用、パスワード保護、あえてID方式)とは別物。
 
+モーダル・`/events/[slug]` ページとも、パーマリンクの隣に小さく「編集」リンク(`/events/edit/${event.id}`)を置いている。パスワード保護された管理ページへの導線だが、RLSがもともとanonキー書き込みを許可している(= このパスワードはUIの軽い鍵でしかない)という前提に沿って、誰でも踏める場所に出すことを許容している。
+
 **注意**: モーダルの中身は `EventCard` をそのまま使わず、`SetlistView` + 素のリンク(`<a>`のみ、OGPプレビューなし)で自前に組んでいる。`EventLinks`(OGPプレビュー付きリンクカード)は `async function` のServer Componentで、クライアントコンポーネントのツリーに持ち込むと `Only Server Components can be async` でクラッシュするため。OGPプレビュー付きの完全な表示は `/events/[slug]` ページ(サーバーレンダリング)側だけで見られる。
 
 ### 曲名クリックのモーダル化(`src/components/InteractiveSetlist.tsx`)

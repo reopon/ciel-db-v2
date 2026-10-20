@@ -138,12 +138,20 @@ export function MonthCalendar({
                   )}
                 </CardContent>
               </Card>
-              <Link
-                href={`/events/${selected.slug}`}
-                className="text-xs text-muted-foreground hover:underline"
-              >
-                このイベントのページを開く(共有用URL、リンクのプレビュー付き) →
-              </Link>
+              <div className="flex items-center justify-between gap-2">
+                <Link
+                  href={`/events/${selected.slug}`}
+                  className="text-xs text-muted-foreground hover:underline"
+                >
+                  このイベントのページを開く(共有用URL、リンクのプレビュー付き) →
+                </Link>
+                <Link
+                  href={`/events/edit/${selected.id}`}
+                  className="text-xs text-muted-foreground hover:underline shrink-0"
+                >
+                  編集
+                </Link>
+              </div>
             </>
           )}
         </DialogContent>
