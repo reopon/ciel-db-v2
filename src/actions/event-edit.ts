@@ -14,6 +14,8 @@ export async function updateEventAction(_prevState: ActionState, formData: FormD
   const isoDate = String(formData.get("date") ?? "").trim()
   const notes = String(formData.get("notes") ?? "").trim() || null
   const stageCostume = String(formData.get("stageCostume") ?? "").trim() || null
+  const displayOrderField = String(formData.get("displayOrder") ?? "").trim()
+  const displayOrder = displayOrderField && Number.isInteger(Number(displayOrderField)) ? Number(displayOrderField) : null
 
   if (!eventId || !eventName || !isoDate) {
     return { status: "error", message: "イベントID・イベント名・日付は必須です" }
@@ -53,6 +55,7 @@ export async function updateEventAction(_prevState: ActionState, formData: FormD
       date: isoDate,
       notes,
       stage_costume: stageCostume,
+      display_order: displayOrder,
       updated_at: new Date().toISOString(),
     })
     .eq("id", eventId)

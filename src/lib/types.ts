@@ -31,6 +31,7 @@ export interface Event {
   venue: Venue | null
   notes: string | null
   stage_costume: string | null
+  display_order: number | null
 }
 
 export interface EventWithSetlist extends Event {

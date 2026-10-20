@@ -20,7 +20,7 @@ interface RawEvent extends Omit<Event, "venue"> {
 }
 
 const EVENT_SELECT = `
-  id, slug, event_name, date, notes, stage_costume,
+  id, slug, event_name, date, notes, stage_costume, display_order,
   venue:venues ( id, name, slug ),
   setlists (
     order, note_before, note_after,
@@ -53,6 +53,8 @@ export async function fetchEvents(): Promise<EventWithSetlist[]> {
     .from("events")
     .select(EVENT_SELECT)
     .order("date", { ascending: false })
+    .order("display_order", { ascending: true, nullsFirst: false })
+    .order("id", { ascending: true })
 
   if (error) {
     console.error(error)
@@ -90,7 +92,12 @@ export async function fetchEventBySlug(slug: string): Promise<EventWithSetlist |
 
 export async function fetchEventsByDate(isoDate: string): Promise<EventWithSetlist[]> {
   const supabase = getSupabaseClient()
-  const { data, error } = await supabase.from("events").select(EVENT_SELECT).eq("date", isoDate)
+  const { data, error } = await supabase
+    .from("events")
+    .select(EVENT_SELECT)
+    .eq("date", isoDate)
+    .order("display_order", { ascending: true, nullsFirst: false })
+    .order("id", { ascending: true })
 
   if (error) {
     console.error(error)
@@ -180,6 +187,8 @@ export async function fetchEventsByVenueId(venueId: number): Promise<EventWithSe
     .select(EVENT_SELECT)
     .eq("venue_id", venueId)
     .order("date", { ascending: false })
+    .order("display_order", { ascending: true, nullsFirst: false })
+    .order("id", { ascending: true })
 
   if (error) {
     console.error(error)

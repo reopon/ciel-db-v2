@@ -126,6 +126,14 @@ export function EventEditForm({
             className={inputClass}
           />
         </Field>
+        <Field label="表示順(同日内。空なら登録順)">
+          <input
+            name="displayOrder"
+            type="number"
+            defaultValue={event.display_order ?? ""}
+            className={inputClass}
+          />
+        </Field>
       </section>
 
       <section className="space-y-3">
