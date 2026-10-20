@@ -25,7 +25,20 @@ export default async function MusicPage() {
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-8 space-y-6">
-      <h1 className="text-2xl font-display tracking-wide font-semibold">楽曲一覧</h1>
+      <div className="flex items-baseline justify-between gap-2 flex-wrap">
+        <h1 className="text-2xl font-display tracking-wide font-semibold">楽曲一覧</h1>
+        <div className="flex gap-3 text-sm">
+          <Link href="/music/composers" className="text-brand underline underline-offset-2 decoration-brand/40 hover:decoration-brand">
+            作曲者別
+          </Link>
+          <Link href="/music/lyricists" className="text-brand underline underline-offset-2 decoration-brand/40 hover:decoration-brand">
+            作詞者別
+          </Link>
+          <Link href="/music/arrangers" className="text-brand underline underline-offset-2 decoration-brand/40 hover:decoration-brand">
+            編曲者別
+          </Link>
+        </div>
+      </div>
 
       <div className="overflow-x-auto rounded-md border">
         <table className="w-full text-sm">

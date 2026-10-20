@@ -3,12 +3,19 @@ import { getSupabaseClient } from "@/lib/supabase"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { Song } from "@/lib/types"
 
-type GroupField = "composer" | "lyricist"
+type GroupField = "composer" | "lyricist" | "arranger"
 
 const FIELD_LABEL: Record<GroupField, string> = {
   composer: "作曲",
   lyricist: "作詞",
+  arranger: "編曲",
 }
+
+// Secondary info line under each song card: the first other field in this
+// fixed order, so composer/lyricist keep their existing pairing and the
+// new arranger page gets a sensible default (composer) without needing a
+// 3-way toggle.
+const FIELD_ORDER: GroupField[] = ["composer", "lyricist", "arranger"]
 
 async function fetchGrouped(field: GroupField): Promise<[string, Song[]][]> {
   const supabase = getSupabaseClient()
@@ -35,7 +42,7 @@ async function fetchGrouped(field: GroupField): Promise<[string, Song[]][]> {
 
 export async function GroupedSongs({ field, pageTitle }: { field: GroupField; pageTitle: string }) {
   const groups = await fetchGrouped(field)
-  const otherField: GroupField = field === "composer" ? "lyricist" : "composer"
+  const otherField = FIELD_ORDER.find((f) => f !== field)!
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-8 space-y-6">

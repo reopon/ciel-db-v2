@@ -59,6 +59,11 @@ Supabase を読むページは `export const dynamic = "force-dynamic"` を必�
 
 保存(`src/actions/event-edit.ts` の `updateEventAction`)はセットリスト・関連URLとも**差分更新ではなく全削除→再insert**という割り切った実装(低頻度の個人管理ツールのため)。ナビゲーションには出していない(`/register` と同じ扱い)。
 
+### 楽曲ページ(`/music`, `/music/composers`, `/music/lyricists`, `/music/arrangers`, `/music/[slug]`)
+`/music` は `is_repertoire=true` の曲を発売日順にテーブル表示。作曲者別・作詞者別・編曲者別は3ページとも `src/components/GroupedSongs.tsx`(`field: "composer"|"lyricist"|"arranger"` を取るだけの共通コンポーネント)で、担当者名で曲をグルーピングして表示する。各曲カードには副情報として「もう一つの役割」を添えているが、3フィールドあるので二択の相互トグルにはできず、`FIELD_ORDER = ["composer", "lyricist", "arranger"]` の中で自分以外の最初の項目を機械的に選んでいる(composerページ→lyricist、lyricistページ→composer、arrangerページ→composer、という表示になる)。
+
+いずれもナビには出していない(`/music` の見出し行に「作曲者別」「作詞者別」「編曲者別」という小さいリンクを置いているだけ — ユーザーの要望通り「メニューには出さない」導線)。
+
 ### 会場別ページ(`/venues`, `/venues/[slug]`)
 `/music`・`/music/composers` 等と同じ構造。一覧(`/venues`)は `fetchVenuesWithEventCounts`(venuesとeventsを別クエリで取得してJS側でカウント集計、`groupByYearMonth`等と同じ「単純な集計はJSでやる」という既存方針を踏襲)で公演数の多い順にテーブル表示、詳細(`/venues/[slug]`)はその会場の `EventCard` を日付降順で並べる(披露履歴のような軽量リストではなく、`/events` と同じ「その会場で何が起きたか」が主目的のページなのでフルの `EventCard` を採用)。ナビにも「会場別」として出している(`/music/composers`等とは違い、ユーザー自身が要望した導線のため)。
 
