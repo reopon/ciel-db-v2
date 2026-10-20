@@ -63,7 +63,7 @@ Supabase を読むページは `export const dynamic = "force-dynamic"` を必�
 `/music`・`/music/composers` 等と同じ構造。一覧(`/venues`)は `fetchVenuesWithEventCounts`(venuesとeventsを別クエリで取得してJS側でカウント集計、`groupByYearMonth`等と同じ「単純な集計はJSでやる」という既存方針を踏襲)で公演数の多い順にテーブル表示、詳細(`/venues/[slug]`)はその会場の `EventCard` を日付降順で並べる(披露履歴のような軽量リストではなく、`/events` と同じ「その会場で何が起きたか」が主目的のページなのでフルの `EventCard` を採用)。ナビにも「会場別」として出している(`/music/composers`等とは違い、ユーザー自身が要望した導線のため)。
 
 ### イベント一覧・カレンダー系ページ(`/events`, `/calendar`, `/calendar/[year]/[month]`)
-URL遍歴: 旧「アーカイブ」(`/archive`、検索+月別`EventCard`一覧)は一時的に「カレンダー」(`/calendar`)に改名したが、未来のイベントも載るうえにカレンダーUI自体は無いページだったため体を表しておらず、**検索+月別一覧の機能ごと `/events`(表示名「イベント」)に移設**。`/calendar` は**別物として新設し直し、月間カレンダーグリッド(`MonthCalendar`)が新しい月から順に縦に並ぶだけのページ**にした(検索・`EventCard`一覧は持たない。欲しければ `/events` へ)。各月の見出しは `/calendar/{year}/{month}` へのリンクになっている。`/events` の検索(`q`)は実装上イベント名・会場名・曲名すべてをhaystackに含めている(`event_name`・`venue.name`・`setlist[].song.title` を連結)ので、placeholderもそれに合わせて「イベント名・曲名・会場名で検索」としている。各月セクションにあった「この月だけのページ→」リンクは使う場面が薄いため削除済み。
+URL遍歴: 旧「アーカイブ」(`/archive`、検索+月別`EventCard`一覧)は一時的に「カレンダー」(`/calendar`)に改名したが、未来のイベントも載るうえにカレンダーUI自体は無いページだったため体を表しておらず、**検索+月別一覧の機能ごと `/events`(表示名「イベント」)に移設**。`/calendar` は**別物として新設し直し、月間カレンダーグリッド(`MonthCalendar`)が新しい月から順に縦に並ぶだけのページ**にした(検索・`EventCard`一覧は持たない。欲しければ `/events` へ)。各月の見出しは `/calendar/{year}/{month}` へのリンクになっている。`/events` の検索(`q`)は実装上イベント名・会場名・曲名すべてをhaystackに含めている(`event_name`・`venue.name`・`setlist[].song.title` を連結)ので、placeholderもそれに合わせて「イベント名・曲名・会場名で検索」としている。各月セクションにあった「この月だけのページ→」リンクと、年で絞り込む`year`パラメータ・セレクトボックスは使う場面が薄いため削除済み(テキスト検索の`q`のみ)。
 
 旧URLからのリダイレクト(`next.config.ts` の `redirects()`): `/archive` → `/events`(中身の引き継ぎ先)、`/archive/[year]/[month]` → `/calendar/[year]/[month]`(この月別詳細ページ自体はURL・中身とも今回変更していない)。
 
@@ -81,6 +81,8 @@ URL遍歴: 旧「アーカイブ」(`/archive`、検索+月別`EventCard`一覧)
 セットリストの曲名クリックも同じザッピング思想で、`/music/[slug]` へのフルページ遷移の代わりにモーダルで曲情報(発売日・作詞・作曲・編曲・振付。`song` オブジェクトに元から含まれているため追加fetch不要)+ 直近5回の披露履歴(巨大化を避けるため絞っている。`src/lib/songs.ts` の `fetchSongPerformances(songId, limit)`、全件取得が要る `/music/[slug]` 側では `limit` 省略)を表示する。披露履歴の取得は `src/actions/songs.ts` の `fetchRecentSongPerformancesAction`(読み取り専用だが、クライアントコンポーネントから呼ぶために Server Action にしている — 唯一の読み取り用途のServer Action)。
 
 この曲モーダルは `SetlistView`(素の`<Link>`版)をラップした `InteractiveSetlist` が自前でstate管理ごと持っており、**`EventCard`(`/events/[slug]`・`/calendar`・トップページ等、素のページ)と `MonthCalendar` のイベントモーダル(入れ子のDialog)の両方で同じコンポーネントを共用**している(`EventCard`・`MonthCalendar`とも `SetlistView` ではなく `InteractiveSetlist` を使う)。`MonthCalendar` 側は外側のイベントDialogが閉じると `{selected && (...)}` ごとアンマウントされるので、曲モーダルのstateも連動して自然にリセットされる(明示的な後始末コードは不要)。
+
+**注意**: `SetlistView` の `NoteLine`(MC等の備考を表示する `Badge`)は、`src/components/ui/badge.tsx` の `badgeVariants` がデフォルトで `whitespace-nowrap` を持つため、備考テキストが長い(複数曲名を`/`で連結した長いMC note等)とスマホでページ全体が横スクロールする不具合があった。`NoteLine` 側で `whitespace-normal break-words max-w-full` を上書きして対応済み(`/events` のように全期間の`EventCard`を並べるページで、長い備考を持つイベントに当たる確率が上がり顕在化した)。`Badge` 自体の既存利用箇所はここ1箇所のみなので、共通コンポーネント側のデフォルトは変えていない。
 
 ### ナビゲーション(`src/app/layout.tsx`, `src/components/HamburgerMenu.tsx`)
 ロゴ(Gran☆Ciel)クリックで`/`に戻れるため、ナビ本体(`navLinks`)には「カレンダー」「楽曲」の2つだけを常時表示し、残り(「イベント」「会場別」「About」)はナビ右端のハンバーガーメニューに畳んでいる。ハンバーガーは `@radix-ui/react-popover`(既存依存、以前は未使用だった)を薄くラップした `src/components/ui/popover.tsx` の上に組んだ `HamburgerMenu`。メニュー項目クリックで自動的に閉じる(`onClick={() => setOpen(false)}`)。

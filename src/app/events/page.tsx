@@ -10,15 +10,12 @@ export const dynamic = "force-dynamic"
 export default async function EventsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; year?: string }>
+  searchParams: Promise<{ q?: string }>
 }) {
-  const { q, year } = await searchParams
+  const { q } = await searchParams
   const events = await fetchEvents()
 
-  const years = Array.from(new Set(events.map((e) => e.date.slice(0, 4)))).sort().reverse()
-
   const filtered = events.filter((event) => {
-    if (year && event.date.slice(0, 4) !== year) return false
     if (q) {
       const needle = q.toLowerCase()
       const haystack = [event.event_name, event.venue?.name ?? "", ...event.setlist.map((s) => s.song.title)]
@@ -30,7 +27,7 @@ export default async function EventsPage({
   })
 
   const grouped: [string, EventWithSetlist[]][] = groupByYearMonth(filtered)
-  const hasFilter = Boolean(q || year)
+  const hasFilter = Boolean(q)
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-8 space-y-8">
@@ -44,18 +41,6 @@ export default async function EventsPage({
           placeholder="イベント名・曲名・会場名で検索"
           className="flex-1 min-w-40 h-9 px-3 rounded-md border bg-background text-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
         />
-        <select
-          name="year"
-          defaultValue={year ?? ""}
-          className="h-9 px-3 rounded-md border bg-background text-sm"
-        >
-          <option value="">全期間</option>
-          {years.map((y) => (
-            <option key={y} value={y}>
-              {y}年
-            </option>
-          ))}
-        </select>
         <Button type="submit" size="sm">
           検索
         </Button>

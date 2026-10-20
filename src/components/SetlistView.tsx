@@ -43,7 +43,11 @@ export function SetlistView({
 function NoteLine({ text }: { text: string }) {
   return (
     <div className="pl-7 py-0.5">
-      <Badge variant="muted" className="font-normal">
+      {/* Badge defaults to whitespace-nowrap (fine for short labels), but
+          these notes are free text and can run long (e.g. multiple MC
+          song titles joined together) — override to wrap instead of
+          pushing the page into horizontal scroll. */}
+      <Badge variant="muted" className="font-normal whitespace-normal break-words max-w-full">
         {text}
       </Badge>
     </div>
