@@ -245,3 +245,19 @@ export function groupByYearMonth(events: EventWithSetlist[]): [string, EventWith
   }
   return Array.from(groups.entries())
 }
+
+// Every month that has at least one event, newest first, for the "see
+// other months" link list at the bottom of the top page and
+// /calendar/[year]/[month]. excludeKey ("YYYY-MM") leaves out the month
+// already being shown on the page using this.
+export function buildMonthLinks(
+  events: EventWithSetlist[],
+  excludeKey?: string
+): { year: string; month: string }[] {
+  const grouped = groupByYearMonth(events)
+  return grouped
+    .map(([key]) => key)
+    .filter((key) => key !== excludeKey)
+    .sort((a, b) => b.localeCompare(a))
+    .map((key) => ({ year: key.slice(0, 4), month: key.slice(5, 7) }))
+}

@@ -90,6 +90,8 @@ URL遍歴: 旧「アーカイブ」(`/archive`、検索+月別`EventCard`一覧)
 ### トップページ(`/`)
 見出しは目立たせず「今月の公演」と小さく(`text-sm text-muted-foreground`)表示するだけに留め、その下は `/calendar/[year]/[month]` の今月ページと同じ構成(`MonthCalendar` + `EventCard` 一覧)。最下部の「過去の月を見る」は全期間ぶんの月リンクを表示する(件数上限なし)。トップページ自体にはカレンダー一覧ページのような「今月を先頭に固定」の特別な仕組みは不要(そもそも今月しか出していないため)。
 
+月リンクの一覧(`src/lib/events.ts` の `buildMonthLinks(events, excludeKey)` + `src/components/MonthLinksSection.tsx`)はトップページと `/calendar/[year]/[month]` の両方で共用している。`/calendar/[year]/[month]` 側は以前「← カレンダーに戻る」という単一リンクだけだったが、表示中の月を除いた全月へのリンク一覧(ラベルは「他の月を見る」)に差し替えた — 表示中の月は過去とは限らない(未来の月を直接開くこともあるため)ので、トップページの「過去の月を見る」とは違うラベルにしている。
+
 ### デザイントークン
 `src/app/globals.css` に Option A "Cool Precision"(紺/白/エレクトリックブルー)パレットを `:root` / `.dark` で定義、`--brand` が強調色。フォントは `next/font/google` 経由で Oswald(`--font-oswald` / `font-display`、見出し用)と Zen Kaku Gothic New(`--font-zen-kaku-gothic-new` / `font-sans`、本文用)。リンクは `text-brand underline underline-offset-2 decoration-brand/40 hover:decoration-brand` で統一し、クリック可否を視覚的に明示する。
 

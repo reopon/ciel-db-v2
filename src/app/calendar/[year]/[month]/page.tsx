@@ -1,8 +1,8 @@
-import Link from "next/link"
 import { notFound } from "next/navigation"
-import { fetchEvents } from "@/lib/events"
+import { fetchEvents, buildMonthLinks } from "@/lib/events"
 import { EventCard } from "@/components/EventCard"
 import { MonthCalendar } from "@/components/MonthCalendar"
+import { MonthLinksSection } from "@/components/MonthLinksSection"
 
 export const dynamic = "force-dynamic"
 
@@ -23,6 +23,7 @@ export default async function MonthCalendarPage({
   const monthEvents = events.filter(
     (e) => e.date.slice(0, 4) === year && e.date.slice(5, 7) === monthPadded
   )
+  const otherMonths = buildMonthLinks(events, `${year}-${monthPadded}`)
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-8 space-y-8">
@@ -42,11 +43,7 @@ export default async function MonthCalendarPage({
         </div>
       )}
 
-      <div className="pt-4 border-t">
-        <Link href="/calendar" className="text-sm text-muted-foreground hover:underline">
-          ← カレンダーに戻る
-        </Link>
-      </div>
+      <MonthLinksSection label="他の月を見る" months={otherMonths} />
     </main>
   )
 }
