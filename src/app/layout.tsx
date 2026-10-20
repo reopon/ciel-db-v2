@@ -26,7 +26,6 @@ const navLinks = [
   { href: "/calendar", label: "カレンダー" },
   { href: "/music", label: "楽曲" },
   { href: "/venues", label: "会場別" },
-  { href: "/import", label: "インポート" },
   { href: "/about", label: "About" },
 ]
 
