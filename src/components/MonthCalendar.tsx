@@ -18,10 +18,12 @@ export function MonthCalendar({
   year,
   month,
   events,
+  showNav = true,
 }: {
   year: number
   month: number
   events: EventWithSetlist[]
+  showNav?: boolean
 }) {
   const [selected, setSelected] = useState<EventWithSetlist | null>(null)
 
@@ -60,14 +62,16 @@ export function MonthCalendar({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between text-sm">
-        <Link href={prevHref} className="text-muted-foreground hover:underline">
-          ← {prevDate.getFullYear()}年{prevDate.getMonth() + 1}月
-        </Link>
-        <Link href={nextHref} className="text-muted-foreground hover:underline">
-          {nextDate.getFullYear()}年{nextDate.getMonth() + 1}月 →
-        </Link>
-      </div>
+      {showNav && (
+        <div className="flex items-center justify-between text-sm">
+          <Link href={prevHref} className="text-muted-foreground hover:underline">
+            ← {prevDate.getFullYear()}年{prevDate.getMonth() + 1}月
+          </Link>
+          <Link href={nextHref} className="text-muted-foreground hover:underline">
+            {nextDate.getFullYear()}年{nextDate.getMonth() + 1}月 →
+          </Link>
+        </div>
+      )}
       <div className="rounded-md border overflow-hidden">
         <div className="grid grid-cols-7 divide-x bg-muted text-xs">
           {WEEKDAY_LABELS.map((w) => (
@@ -143,7 +147,7 @@ export function MonthCalendar({
                   href={`/events/${selected.slug}`}
                   className="text-xs text-muted-foreground hover:underline"
                 >
-                  このイベントのページを開く(共有用URL、リンクのプレビュー付き) →
+                  このイベントのページを開く →
                 </Link>
                 <Link
                   href={`/events/edit/${selected.id}`}

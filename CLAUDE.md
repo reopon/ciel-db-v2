@@ -63,11 +63,13 @@ Supabase を読むページは `export const dynamic = "force-dynamic"` を必�
 `/music`・`/music/composers` 等と同じ構造。一覧(`/venues`)は `fetchVenuesWithEventCounts`(venuesとeventsを別クエリで取得してJS側でカウント集計、`groupByYearMonth`等と同じ「単純な集計はJSでやる」という既存方針を踏襲)で公演数の多い順にテーブル表示、詳細(`/venues/[slug]`)はその会場の `EventCard` を日付降順で並べる(披露履歴のような軽量リストではなく、`/events` と同じ「その会場で何が起きたか」が主目的のページなのでフルの `EventCard` を採用)。ナビにも「会場別」として出している(`/music/composers`等とは違い、ユーザー自身が要望した導線のため)。
 
 ### イベント一覧・カレンダー系ページ(`/events`, `/calendar`, `/calendar/[year]/[month]`)
-URL遍歴: 旧「アーカイブ」(`/archive`、検索+月別`EventCard`一覧)は一時的に「カレンダー」(`/calendar`)に改名したが、未来のイベントも載るうえにカレンダーUI自体は無いページだったため体を表しておらず、**検索+月別一覧の機能ごと `/events`(表示名「イベント」)に移設**。`/calendar` は**別物として新設し直し、月間カレンダーグリッド(`MonthCalendar`)が新しい月から順に縦に並ぶだけのページ**にした(検索・`EventCard`一覧は持たない。欲しければ `/events` へ)。各月の見出しは `/calendar/{year}/{month}` へのリンクになっている。
+URL遍歴: 旧「アーカイブ」(`/archive`、検索+月別`EventCard`一覧)は一時的に「カレンダー」(`/calendar`)に改名したが、未来のイベントも載るうえにカレンダーUI自体は無いページだったため体を表しておらず、**検索+月別一覧の機能ごと `/events`(表示名「イベント」)に移設**。`/calendar` は**別物として新設し直し、月間カレンダーグリッド(`MonthCalendar`)が新しい月から順に縦に並ぶだけのページ**にした(検索・`EventCard`一覧は持たない。欲しければ `/events` へ)。各月の見出しは `/calendar/{year}/{month}` へのリンクになっている。`/events` の検索(`q`)は実装上イベント名・会場名・曲名すべてをhaystackに含めている(`event_name`・`venue.name`・`setlist[].song.title` を連結)ので、placeholderもそれに合わせて「イベント名・曲名・会場名で検索」としている。各月セクションにあった「この月だけのページ→」リンクは使う場面が薄いため削除済み。
 
 旧URLからのリダイレクト(`next.config.ts` の `redirects()`): `/archive` → `/events`(中身の引き継ぎ先)、`/archive/[year]/[month]` → `/calendar/[year]/[month]`(この月別詳細ページ自体はURL・中身とも今回変更していない)。
 
-トップページ(今月)と `/calendar/[year]/[month]`、そして新設の `/calendar` 一覧(複数月ぶん)で `MonthCalendar` を使い、月7列グリッド(TimeTree/Googleカレンダー風、月曜始まり)を表示する。コンポーネント自身が前月/次月リンク(`/calendar/{year}/{month}` へ)を内蔵しているので、カレンダーの矢印をたどって月を遡っても常にカレンダー付きのページに着地する連鎖になる(`calendar/[year]/[month]/page.tsx` 側は前月/次月リンクの実装を持たず `MonthCalendar` に委譲している)。グリッドは画面幅に収まるようレスポンシブ(`sm:`で余白・文字サイズを変える、横スクロールはさせない)。
+トップページ(今月)と `/calendar/[year]/[month]` では `MonthCalendar` の前月/次月リンク(`showNav`、デフォルト`true`)を出したままにしている(コンポーネント自身が `/calendar/{year}/{month}` へのリンクを内蔵しているので、矢印をたどって月を遡っても常にカレンダー付きのページに着地する連鎖になる)。一方 `/calendar` の一覧(複数月ぶん)は**スクロールで前後の月に行けるため冗長**として `showNav={false}` で各月の矢印を消している。グリッドは画面幅に収まるようレスポンシブ(`sm:`で余白・文字サイズを変える、横スクロールはさせない)。
+
+`/calendar` は `src/components/CalendarMonthsList.tsx`(クライアントコンポーネント)が本体を担う: **今月を常にページの先頭セクションとして固定**し(今月の見出し行の右に「未来のカレンダーを表示する」トグルボタンを置く)、未来の月は初期状態で非表示、トグルを押すと今月より上に展開される。過去の月は今月の下にそのまま並ぶ(`groupByYearMonth`の降順を利用)。これは「カレンダーを見に来た人がまず今月を見たいはず」という考えで、公演予定が先々まで登録されるようになったことで今月が埋もれないようにするための設計。今月に公演が無くても(`groupByYearMonth`は実績のある月しか返さないため)`grouped.find` のフォールバックで空配列を渡し、必ず今月のセクション自体は表示する。
 
 各日のイベントラベルは `"use client"` の `MonthCalendar` 内でモーダル(`src/components/ui/dialog.tsx`)を開く(ザッピングしたいという要望のため、フルページ遷移にはしていない)。クリックは `href="/events/[slug]"` を持つ実リンクのまま `onClick` で `preventDefault` しているだけなので、Ctrl/Cmd+クリックや右クリック→リンクをコピーは素のリンクとして機能し、SNS等への共有パーマリンクとして `/events/[slug]`(新規・パスワード不要の公開ページ)が独立して成立する。`/events/[slug]` は `(admin)/events/edit/[id]`(編集用、パスワード保護、あえてID方式)とは別物。
 
@@ -79,6 +81,12 @@ URL遍歴: 旧「アーカイブ」(`/archive`、検索+月別`EventCard`一覧)
 セットリストの曲名クリックも同じザッピング思想で、`/music/[slug]` へのフルページ遷移の代わりにモーダルで曲情報(発売日・作詞・作曲・編曲・振付。`song` オブジェクトに元から含まれているため追加fetch不要)+ 直近5回の披露履歴(巨大化を避けるため絞っている。`src/lib/songs.ts` の `fetchSongPerformances(songId, limit)`、全件取得が要る `/music/[slug]` 側では `limit` 省略)を表示する。披露履歴の取得は `src/actions/songs.ts` の `fetchRecentSongPerformancesAction`(読み取り専用だが、クライアントコンポーネントから呼ぶために Server Action にしている — 唯一の読み取り用途のServer Action)。
 
 この曲モーダルは `SetlistView`(素の`<Link>`版)をラップした `InteractiveSetlist` が自前でstate管理ごと持っており、**`EventCard`(`/events/[slug]`・`/calendar`・トップページ等、素のページ)と `MonthCalendar` のイベントモーダル(入れ子のDialog)の両方で同じコンポーネントを共用**している(`EventCard`・`MonthCalendar`とも `SetlistView` ではなく `InteractiveSetlist` を使う)。`MonthCalendar` 側は外側のイベントDialogが閉じると `{selected && (...)}` ごとアンマウントされるので、曲モーダルのstateも連動して自然にリセットされる(明示的な後始末コードは不要)。
+
+### ナビゲーション(`src/app/layout.tsx`, `src/components/HamburgerMenu.tsx`)
+ロゴ(Gran☆Ciel)クリックで`/`に戻れるため、ナビ本体(`navLinks`)には「カレンダー」「楽曲」の2つだけを常時表示し、残り(「イベント」「会場別」「About」)はナビ右端のハンバーガーメニューに畳んでいる。ハンバーガーは `@radix-ui/react-popover`(既存依存、以前は未使用だった)を薄くラップした `src/components/ui/popover.tsx` の上に組んだ `HamburgerMenu`。メニュー項目クリックで自動的に閉じる(`onClick={() => setOpen(false)}`)。
+
+### トップページ(`/`)
+見出しは目立たせず「今月の公演」と小さく(`text-sm text-muted-foreground`)表示するだけに留め、その下は `/calendar/[year]/[month]` の今月ページと同じ構成(`MonthCalendar` + `EventCard` 一覧)。最下部の「過去の月を見る」は全期間ぶんの月リンクを表示する(件数上限なし)。トップページ自体にはカレンダー一覧ページのような「今月を先頭に固定」の特別な仕組みは不要(そもそも今月しか出していないため)。
 
 ### デザイントークン
 `src/app/globals.css` に Option A "Cool Precision"(紺/白/エレクトリックブルー)パレットを `:root` / `.dark` で定義、`--brand` が強調色。フォントは `next/font/google` 経由で Oswald(`--font-oswald` / `font-display`、見出し用)と Zen Kaku Gothic New(`--font-zen-kaku-gothic-new` / `font-sans`、本文用)。リンクは `text-brand underline underline-offset-2 decoration-brand/40 hover:decoration-brand` で統一し、クリック可否を視覚的に明示する。

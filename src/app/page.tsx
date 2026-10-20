@@ -24,15 +24,11 @@ export default async function TopPage() {
     if (key === `${currentYear}-${currentMonth}`) continue
     if (!monthLinks.has(key)) monthLinks.set(key, { year, month })
   }
-  const recentMonths = Array.from(monthLinks.entries())
-    .sort((a, b) => b[0].localeCompare(a[0]))
-    .slice(0, 12)
+  const recentMonths = Array.from(monthLinks.entries()).sort((a, b) => b[0].localeCompare(a[0]))
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-8 space-y-8">
-      <h1 className="text-2xl font-display tracking-wide font-semibold">
-        {Number(currentYear)}年{Number(currentMonth)}月の公演
-      </h1>
+      <h1 className="text-sm font-medium text-muted-foreground">今月の公演</h1>
 
       <MonthCalendar year={Number(currentYear)} month={Number(currentMonth)} events={thisMonthEvents} />
 

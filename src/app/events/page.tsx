@@ -41,7 +41,7 @@ export default async function EventsPage({
           type="search"
           name="q"
           defaultValue={q}
-          placeholder="曲名・会場名で検索"
+          placeholder="イベント名・曲名・会場名で検索"
           className="flex-1 min-w-40 h-9 px-3 rounded-md border bg-background text-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
         />
         <select
@@ -73,15 +73,7 @@ export default async function EventsPage({
       <div className="space-y-10">
         {grouped.map(([key, evts]) => (
           <section key={key}>
-            <div className="flex items-baseline justify-between mb-3">
-              <h2 className="text-sm font-semibold text-muted-foreground">{monthKeyToLabel(key)}</h2>
-              <Link
-                href={`/calendar/${key.split("-")[0]}/${Number(key.split("-")[1])}`}
-                className="text-xs text-muted-foreground hover:underline"
-              >
-                この月だけのページ →
-              </Link>
-            </div>
+            <h2 className="text-sm font-semibold text-muted-foreground mb-3">{monthKeyToLabel(key)}</h2>
             <div className="space-y-4">
               {evts.map((event) => (
                 <EventCard key={event.id} event={event} />

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Oswald, Zen_Kaku_Gothic_New } from "next/font/google";
 import Link from "next/link";
+import { HamburgerMenu } from "@/components/HamburgerMenu";
 import "./globals.css";
 
 const oswald = Oswald({
@@ -21,12 +22,8 @@ export const metadata: Metadata = {
 };
 
 const navLinks = [
-  { href: "/", label: "今月の公演" },
-  { href: "/events", label: "イベント" },
   { href: "/calendar", label: "カレンダー" },
   { href: "/music", label: "楽曲" },
-  { href: "/venues", label: "会場別" },
-  { href: "/about", label: "About" },
 ]
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -53,6 +50,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                 {link.label}
               </Link>
             ))}
+            <div className="ml-auto">
+              <HamburgerMenu />
+            </div>
           </nav>
         </header>
         <main className="flex-1">{children}</main>
