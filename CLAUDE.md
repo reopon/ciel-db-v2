@@ -100,5 +100,16 @@ URL遍歴: 旧「アーカイブ」(`/archive`、検索+月別`EventCard`一覧)
 ### デザイントークン
 `src/app/globals.css` に Option A "Cool Precision"(紺/白/エレクトリックブルー)パレットを `:root` / `.dark` で定義、`--brand` が強調色。フォントは `next/font/google` 経由で Oswald(`--font-oswald` / `font-display`、見出し用)と Zen Kaku Gothic New(`--font-zen-kaku-gothic-new` / `font-sans`、本文用)。リンクは `text-brand underline underline-offset-2 decoration-brand/40 hover:decoration-brand` で統一し、クリック可否を視覚的に明示する。
 
+### 個別ページのメタデータ・OGP画像(`generateMetadata`, `opengraph-image.tsx`)
+`/events/[slug]`・`/music/[slug]` は `generateMetadata` でイベント名/曲名を `title`(`"{名前} | Gran☆Ciel"`)・`description`(日付+会場 / 発売日)として返す。元々ルートレイアウトの静的メタデータ(`Gran☆Ciel Setlists`)しか無く、SNSに貼った共有用URL(`/events/[slug]`)のプレビューが全ページ同じで味気なかったため追加した。
+
+OGP画像(`og:image`)は写真素材を使わず、サイトの配色トークンだけで組んだテキストカード(`src/lib/og-image.tsx` の `renderOgImage({ label, title, meta })`、`next/og` の `ImageResponse`)。ブランド名+カテゴリラベル("SETLIST"/"MUSIC"/"SETLIST ARCHIVE")+タイトル+日付・会場等のmetaの4要素だけのシンプルな構成で、ユーザーに事前承認を得たデザイン。`/events/[slug]/opengraph-image.tsx`・`/music/[slug]/opengraph-image.tsx` がそれぞれのデータで描画し、`src/app/opengraph-image.tsx`(ルート直下)がそれ以外の全ページの既定画像になる(Next.jsのファイル規約上、より深い階層の`opengraph-image`が優先される)。
+
+**フォントはビルド時にバンドルしたファイルを使う(`src/assets/fonts/ZenKakuGothicNew-{Bold,Black}.ttf`、Google Fontsから直接取得したもの)**。`next/font/google`のフォントハンドルはsatori(ImageResponseの内部実装)にそのまま渡せない(satoriは生のフォントバイト列が必要)ため、`fs.readFile`で読み込んでいる(`export const runtime = "nodejs"`が必須、`fs`はedgeランタイムでは使えない)。リクエストごとに `fonts.gstatic.com` へfetchする実装も可能だが、このセッション中に dev サーバーで同ホストへの接続が何度か不安定になったことがあり、外部クローラーからのOGP取得でも同じ不安定さを持ち込みたくなかったためローカルバンドルを選んだ。
+
+`metadataBase`(ルートレイアウトの`metadata`)に本番URL(`https://ciel-live.vercel.app`)を設定している。これが無いと`og:image`等のURLが相対パスのままになり、外部クローラーが解決できない。
+
+既知の制約: 一部のタイトルに含まれる全角チルダ(「～」U+FF5E)がZen Kaku Gothic Newで欠落し、OGP画像上だけ空白になることがある(ページ本体の表示はブラウザのフォールバックフォントで正常)。日本語フォントのチルダ問題と呼ばれる既知の現象で、レイアウトが壊れるような実害は無いため今は許容している。
+
 ### JST日付の扱い
 Vercel の関数はUTCで動くため、「今日」をJSTで計算する必要がある箇所(トップページの「今月」判定など)は `src/lib/format.ts` の `todayJstIso()` を使う(`Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tokyo", ... })` 方式)。

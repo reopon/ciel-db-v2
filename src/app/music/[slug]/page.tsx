@@ -1,23 +1,34 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { getSupabaseClient } from "@/lib/supabase"
-import { fetchSongPerformances } from "@/lib/songs"
+import { fetchSongPerformances, fetchSongBySlug } from "@/lib/songs"
 import { formatDate } from "@/lib/format"
-import type { Song } from "@/lib/types"
+import type { Metadata } from "next"
 
 export const dynamic = "force-dynamic"
 
-async function fetchSong(slug: string): Promise<Song | null> {
-  const supabase = getSupabaseClient()
-  const { data, error } = await supabase.from("songs").select("*").eq("slug", slug).single()
-  if (error || !data) return null
-  return data
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}): Promise<Metadata> {
+  const { slug } = await params
+  const song = await fetchSongBySlug(slug)
+  if (!song) return {}
+
+  const title = `${song.title} | Gran☆Ciel`
+  const description = `発売日: ${formatDate(song.release_date)}${song.composer ? ` / 作曲: ${song.composer}` : ""}`
+  return {
+    title,
+    description,
+    openGraph: { title, description },
+    twitter: { card: "summary_large_image", title, description },
+  }
 }
 
 export default async function SongDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
 
-  const song = await fetchSong(slug)
+  const song = await fetchSongBySlug(slug)
   if (!song) notFound()
 
   const performances = await fetchSongPerformances(song.id)

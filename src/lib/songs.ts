@@ -1,5 +1,12 @@
 import { getSupabaseClient } from "@/lib/supabase"
-import type { Venue } from "@/lib/types"
+import type { Song, Venue } from "@/lib/types"
+
+export async function fetchSongBySlug(slug: string): Promise<Song | null> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase.from("songs").select("*").eq("slug", slug).maybeSingle()
+  if (error || !data) return null
+  return data
+}
 
 export interface SongPerformance {
   id: number

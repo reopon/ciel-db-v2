@@ -16,9 +16,23 @@ const zenKakuGothicNew = Zen_Kaku_Gothic_New({
   subsets: ["latin"],
 });
 
+const SITE_DESCRIPTION = "Gran☆Ciel セットリストアーカイブ";
+
 export const metadata: Metadata = {
+  // Required for OGP/Twitter image and URL tags to resolve to absolute
+  // URLs (crawlers won't fetch a relative og:image path).
+  metadataBase: new URL("https://ciel-live.vercel.app"),
   title: "Gran☆Ciel Setlists",
-  description: "Gran☆Ciel セットリストアーカイブ",
+  description: SITE_DESCRIPTION,
+  openGraph: {
+    title: "Gran☆Ciel Setlists",
+    description: SITE_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Gran☆Ciel Setlists",
+    description: SITE_DESCRIPTION,
+  },
 };
 
 const navLinks = [
