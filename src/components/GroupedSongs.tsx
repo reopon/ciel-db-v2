@@ -37,7 +37,9 @@ async function fetchGrouped(field: GroupField): Promise<[string, Song[]][]> {
     if (!groups.has(key)) groups.set(key, [])
     groups.get(key)!.push(song)
   }
-  return Array.from(groups.entries())
+  return Array.from(groups.entries()).sort(
+    (a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0], "ja")
+  )
 }
 
 export async function GroupedSongs({ field, pageTitle }: { field: GroupField; pageTitle: string }) {

@@ -60,7 +60,7 @@ Supabase を読むページは `export const dynamic = "force-dynamic"` を必�
 保存(`src/actions/event-edit.ts` の `updateEventAction`)はセットリスト・関連URLとも**差分更新ではなく全削除→再insert**という割り切った実装(低頻度の個人管理ツールのため)。ナビゲーションには出していない(`/register` と同じ扱い)。
 
 ### 楽曲ページ(`/music`, `/music/composers`, `/music/lyricists`, `/music/arrangers`, `/music/[slug]`)
-`/music` は `is_repertoire=true` の曲を発売日順にテーブル表示。作曲者別・作詞者別・編曲者別は3ページとも `src/components/GroupedSongs.tsx`(`field: "composer"|"lyricist"|"arranger"` を取るだけの共通コンポーネント)で、担当者名で曲をグルーピングして表示する。各曲カードには副情報として「もう一つの役割」を添えているが、3フィールドあるので二択の相互トグルにはできず、`FIELD_ORDER = ["composer", "lyricist", "arranger"]` の中で自分以外の最初の項目を機械的に選んでいる(composerページ→lyricist、lyricistページ→composer、arrangerページ→composer、という表示になる)。
+`/music` は `is_repertoire=true` の曲を発売日順にテーブル表示。作曲者別・作詞者別・編曲者別は3ページとも `src/components/GroupedSongs.tsx`(`field: "composer"|"lyricist"|"arranger"` を取るだけの共通コンポーネント)で、担当者名で曲をグルーピングして表示する。グループの並び順は曲数の多い順(`fetchGrouped`内で`.sort((a,b) => b[1].length - a[1].length || a[0].localeCompare(b[0], "ja"))`、同数はあいうえお順でタイブレーク — `fetchVenuesWithEventCounts`と同じパターン)。各曲カードには副情報として「もう一つの役割」を添えているが、3フィールドあるので二択の相互トグルにはできず、`FIELD_ORDER = ["composer", "lyricist", "arranger"]` の中で自分以外の最初の項目を機械的に選んでいる(composerページ→lyricist、lyricistページ→composer、arrangerページ→composer、という表示になる)。
 
 いずれもナビには出していない(`/music` の見出し行に「作曲者別」「作詞者別」「編曲者別」という小さいリンクを置いているだけ — ユーザーの要望通り「メニューには出さない」導線)。
 
