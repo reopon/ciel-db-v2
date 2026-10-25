@@ -32,7 +32,7 @@ npm run lint     # eslint
 
 ### スキーマ(`migrations/*.sql`が正、順に適用)
 - `songs`: id, slug(ランダム8文字、URL用、`/music/[slug]`), title, release_date, lyricist, composer, arranger, choreographer, notes, **is_repertoire**(bool — `/music` の一覧に出す「持ち曲」かどうかのフラグ。生誕イベント等で数回しかやらないカバー曲を除外するためのもので、「カバー曲かどうか」とは別概念。**このカラムは migrations に SQL ファイルがなく、SQL Editor から直接追加されたもの**なので、スキーマの実態は Supabase 側が正、migrations ディレクトリだけを見ても追いつかない場合がある)
-- `events`: id, slug(ランダム8文字、`0010_event_slug.sql`で追加、公開URL`/events/[slug]`用。**管理編集ページ`/events/edit/[id]`はあえてID方式のまま**、検索フォームで打ち込む内部管理用キーなのでスラッグ化していない), event_name, date, venue_id(`venues` へのFK。表記ゆれ対策で`0008`より前は自由記述の`location`だった), notes
+- `events`: id, slug(ランダム8文字、`0010_event_slug.sql`で追加、公開URL`/events/[slug]`用。**管理編集ページ`/events/edit/[id]`はあえてID方式のまま**、各ページの「編集」リンクから内部的に遷移するだけの管理用キーであり人間が直接打ち込む・共有することは無いためスラッグ化していない), event_name, date, venue_id(`venues` へのFK。表記ゆれ対策で`0008`より前は自由記述の`location`だった), notes
 - `venues`: id, name(unique), slug(ランダム8文字、`0009_venue_slug.sql`で追加、`/venues/[slug]`用) — `0008_venues.sql` で `events.location` から名寄せして移行。同じビル内でも別フロア/別ステージは別会場として区別している(例: GOTANDA G4とG7)。`events.location` カラム自体は突き合わせ用にまだ残っている(アプリ側はもう参照しない、削除は検証後に別migrationで行う予定)。新規会場の作成は `src/lib/events.ts` の `findOrCreateVenueId`(名前で検索→無ければinsert)を通す。
 - `setlists`: id, event_id, song_id, order(欠番なしの曲番号), note_before, note_after
 - `event_links`: id, event_id, url, order — イベントに紐づくX投稿/ブログ等のURL、OGPプレビュー表示用
@@ -49,12 +49,14 @@ Supabase を読むページは `export const dynamic = "force-dynamic"` を必�
 全ページが `force-dynamic`(= 毎回Supabaseにfetchしてから描画)なので、遷移が体感できるようルート直下に1つだけ `loading.tsx` を置いている。App RouterはNext.js自身の規約でこれを`layout.tsx`の`children`を包むSuspenseのfallbackとして自動的に使う(個別ページ側は何もしなくてよい)ので、サイト全体の遷移を1ファイルでカバーできる。ヘッダー/ナビは`layout.tsx`側でこのSuspenseの外にあるため遷移中も表示され続け、`main`の中身だけがスピナーに置き換わる。ページ単位で別の `loading.tsx` を置けば、その配下だけ上書きできる。
 
 ### インポート経路
-- `/import`: `#しえるセットリスト` 形式のテキストを貼り付けて `parseImportText` で日付/会場/曲リストに分解し登録。X投稿URLを貼ると `src/lib/twitter-oembed.ts`(公開oEmbedエンドポイント、APIキー不要、1件のURLのみ対応)で本文を取得してテキスト欄に流し込める。**未来のイベントを先に登録→開催後に`/events/edit`でセットリストを埋める運用に変わったため、ほぼ使わなくなった機能としてナビから外している**(`/register`と同じ扱い。ソース・ルートとも削除はしていない)。
+- `/import`: `#しえるセットリスト` 形式のテキストを貼り付けて `parseImportText` で日付/会場/曲リストに分解し登録。X投稿URLを貼ると `src/lib/twitter-oembed.ts`(公開oEmbedエンドポイント、APIキー不要、1件のURLのみ対応)で本文を取得してテキスト欄に流し込める。**未来のイベントを先に登録→開催後に各ページの「編集」リンクからセットリストを埋める運用に変わったため、ほぼ使わなくなった機能としてナビから外している**(`/register`と同じ扱い。ソース・ルートとも削除はしていない)。
 - `/register`: 1行1曲手入力フォーム。現在ナビ(`src/app/layout.tsx` の `navLinks`)からは外しているが、ソース・ルートとも削除していない。会場は `<input list>` + `<datalist>` で既存 `venues` をオートコンプリートしつつ自由入力も可能(`findOrCreateVenueId` が同名なら再利用、無ければ新規作成)。ページ自体は Server Component(`fetchVenuesForPicker` 用)、フォーム部分だけ `src/components/RegisterForm.tsx` に切り出したクライアントコンポーネント。
 - `src/lib/ogp.ts`: イベントリンクのOGPプレビュー用に `<meta property="og:...">` を正規表現で抜くだけの軽量スクレイパー(外部HTMLパーサ依存なし)。
 
-### イベント編集(`/events/edit`, `/events/edit/[id]`)
-`/import`・`/register` が新規作成専用なのに対し、こちらは既存イベントを後から更新するための経路(「先にイベントを登録→開催後にセットリストを埋める」運用のため)。`src/app/(admin)/` ルートグループ配下にあり、`(admin)/layout.tsx` が `ADMIN_PASSWORD`(簡易パスワード、Supabaseの書き込みRLSが元々anonキーに開放されているためUIへの軽い鍵でしかないことに注意)によるクッキー認証をかけている。`/events/edit` はID or 日付でイベントを検索(`<form method="get">`、Server Action不要)、`/events/edit/[id]` が本体フォーム。
+### イベント編集(`/events/edit/[id]`)
+`/import`・`/register` が新規作成専用なのに対し、こちらは既存イベントを後から更新するための経路(「先にイベントを登録→開催後にセットリストを埋める」運用のため)。`src/app/(admin)/` ルートグループ配下にあり、`(admin)/layout.tsx` が `ADMIN_PASSWORD`(簡易パスワード、Supabaseの書き込みRLSが元々anonキーに開放されているためUIへの軽い鍵でしかないことに注意)によるクッキー認証をかけている。
+
+**ID/日付で検索する専用の入り口ページ(`/events/edit`)は廃止済み**。`EventCard`(カード右上の「編集」)とカレンダーモーダル(パーマリンクの隣の「編集」)の両方に `/events/edit/${event.id}` への直リンクが出るようになり、各ページから直接編集に飛べるようになったため、IDを調べて手打ちする検索フォームは不要になった。これに伴い `src/lib/events.ts` の `fetchEventsByDate`(検索専用だった)も削除し、ログイン後のデフォルトリダイレクト先(`src/actions/admin.ts`)も `/calendar` に変更した。`/events/edit/[id]` の「戻る」リンクも(検索ページが無くなったため)`/calendar` へのリンクに差し替えている。
 
 **`/events/[id]/edit` ではなく `/events/edit/[id]` という構成にしている理由**: 公開ページ`/events/[slug]`と動的セグメント名が競合する(`/events/` 直下の最初の動的セグメントの名前はルートグループをまたいで統一する必要があり、`[slug]` と `[id]` が共存できない)。`npm run build` では検出されないが `npm run dev` で `Error: You cannot use different slug names for the same dynamic path` として起動時エラーになるため、`edit` という静的セグメントを先に挟むことで回避している。
 
@@ -101,9 +103,9 @@ URL遍歴: 旧「アーカイブ」(`/archive`、検索+月別`EventCard`一覧)
 ロゴ(Gran☆Ciel)クリックで`/`に戻れるため、ナビ本体(`navLinks`)には「カレンダー」「楽曲」の2つだけを常時表示し、残り(「イベント」「会場別」「About」)はナビ右端のハンバーガーメニューに畳んでいる。ハンバーガーは `@radix-ui/react-popover`(既存依存、以前は未使用だった)を薄くラップした `src/components/ui/popover.tsx` の上に組んだ `HamburgerMenu`。メニュー項目クリックで自動的に閉じる(`onClick={() => setOpen(false)}`)。
 
 ### トップページ(`/`)
-見出しは目立たせず「今月の公演」と小さく(`text-sm text-muted-foreground`)表示するだけに留め、その下は `/calendar/[year]/[month]` の今月ページと同じ構成(`MonthCalendar` + `EventCard` 一覧)。最下部の「過去の月を見る」は全期間ぶんの月リンクを表示する(件数上限なし)。トップページ自体にはカレンダー一覧ページのような「今月を先頭に固定」の特別な仕組みは不要(そもそも今月しか出していないため)。
+見出しは目立たせず「今月の公演」と小さく(`text-sm text-muted-foreground`)表示するだけに留め、その下は `/calendar/[year]/[month]` の今月ページと同じ構成(`MonthCalendar` + `EventCard` 一覧)。最下部の「他の月を見る」は全期間ぶんの月リンクを表示する(件数上限なし)。トップページ自体にはカレンダー一覧ページのような「今月を先頭に固定」の特別な仕組みは不要(そもそも今月しか出していないため)。
 
-月リンクの一覧(`src/lib/events.ts` の `buildMonthLinks(events, excludeKey)` + `src/components/MonthLinksSection.tsx`)はトップページと `/calendar/[year]/[month]` の両方で共用している。`/calendar/[year]/[month]` 側は以前「← カレンダーに戻る」という単一リンクだけだったが、表示中の月を除いた全月へのリンク一覧(ラベルは「他の月を見る」)に差し替えた — 表示中の月は過去とは限らない(未来の月を直接開くこともあるため)ので、トップページの「過去の月を見る」とは違うラベルにしている。
+月リンクの一覧(`src/lib/events.ts` の `buildMonthLinks(events, excludeKey)` + `src/components/MonthLinksSection.tsx`)はトップページと `/calendar/[year]/[month]` の両方で共用している。`/calendar/[year]/[month]` 側は以前「← カレンダーに戻る」という単一リンクだけだったが、表示中の月を除いた全月へのリンク一覧に差し替えた。ラベルはどちらも「他の月を見る」で統一している(未来のイベントも登録されるようになったため、トップページの「今月以外」にも未来の月が混ざり得る — 「過去の月を見る」というラベルは体を表さなくなった)。
 
 ### デザイントークン
 `src/app/globals.css` に Option A "Cool Precision"(紺/白/エレクトリックブルー)パレットを `:root` / `.dark` で定義、`--brand` が強調色。フォントは `next/font/google` 経由で Oswald(`--font-oswald` / `font-display`、見出し用)と Zen Kaku Gothic New(`--font-zen-kaku-gothic-new` / `font-sans`、本文用)。リンクは `text-brand underline underline-offset-2 decoration-brand/40 hover:decoration-brand` で統一し、クリック可否を視覚的に明示する。

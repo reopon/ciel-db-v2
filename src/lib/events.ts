@@ -91,23 +91,6 @@ export async function fetchEventBySlug(slug: string): Promise<EventWithSetlist |
   return mapRawEvent(data as unknown as RawEvent)
 }
 
-export async function fetchEventsByDate(isoDate: string): Promise<EventWithSetlist[]> {
-  const supabase = getSupabaseClient()
-  const { data, error } = await supabase
-    .from("events")
-    .select(EVENT_SELECT)
-    .eq("date", isoDate)
-    .order("display_order", { ascending: true, nullsFirst: false })
-    .order("id", { ascending: true })
-
-  if (error) {
-    console.error(error)
-    return []
-  }
-
-  return (data as unknown as RawEvent[]).map(mapRawEvent)
-}
-
 // For the setlist row picker on the event edit form. Deliberately NOT
 // filtered by is_repertoire — cover/non-repertoire songs can still
 // legitimately appear in a historical setlist, unlike the /music page

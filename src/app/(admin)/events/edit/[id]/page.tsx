@@ -17,8 +17,8 @@ export default async function EventEditPage({ params }: { params: Promise<{ id: 
     return (
       <main className="max-w-xl mx-auto px-4 py-10 space-y-4">
         <p className="text-sm text-muted-foreground">イベントID {id} は見つかりませんでした</p>
-        <Link href="/events/edit" className="text-sm text-brand underline underline-offset-2 decoration-brand/40 hover:decoration-brand">
-          検索に戻る
+        <Link href="/calendar" className="text-sm text-brand underline underline-offset-2 decoration-brand/40 hover:decoration-brand">
+          カレンダーに戻る
         </Link>
       </main>
     )
@@ -28,8 +28,8 @@ export default async function EventEditPage({ params }: { params: Promise<{ id: 
     <main className="max-w-2xl mx-auto px-4 py-10 space-y-6">
       <div className="space-y-1">
         <h1 className="text-2xl font-display tracking-wide font-semibold">イベント編集</h1>
-        <Link href="/events/edit" className="text-sm text-brand underline underline-offset-2 decoration-brand/40 hover:decoration-brand">
-          検索に戻る
+        <Link href="/calendar" className="text-sm text-brand underline underline-offset-2 decoration-brand/40 hover:decoration-brand">
+          カレンダーに戻る
         </Link>
       </div>
       <EventEditForm event={event} songs={songs} venues={venues} stageCostumes={stageCostumes} />

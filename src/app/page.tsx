@@ -33,7 +33,7 @@ export default async function TopPage() {
         </div>
       )}
 
-      <MonthLinksSection label="過去の月を見る" months={otherMonths} />
+      <MonthLinksSection label="他の月を見る" months={otherMonths} />
     </main>
   )
 }

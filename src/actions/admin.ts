@@ -7,7 +7,7 @@ import type { ActionState } from "@/lib/action-state"
 
 export async function loginAction(_prevState: ActionState, formData: FormData): Promise<ActionState> {
   const password = String(formData.get("password") ?? "")
-  const redirectTo = String(formData.get("redirectTo") ?? "/events/edit")
+  const redirectTo = String(formData.get("redirectTo") ?? "/calendar")
 
   if (!process.env.ADMIN_PASSWORD) {
     return { status: "error", message: "ADMIN_PASSWORD が設定されていません" }
