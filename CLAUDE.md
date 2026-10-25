@@ -79,7 +79,7 @@ URL遍歴: 旧「アーカイブ」(`/archive`、検索+月別`EventCard`一覧)
 
 各日のイベントラベルは `"use client"` の `MonthCalendar` 内でモーダル(`src/components/ui/dialog.tsx`)を開く(ザッピングしたいという要望のため、フルページ遷移にはしていない)。クリックは `href="/events/[slug]"` を持つ実リンクのまま `onClick` で `preventDefault` しているだけなので、Ctrl/Cmd+クリックや右クリック→リンクをコピーは素のリンクとして機能し、SNS等への共有パーマリンクとして `/events/[slug]`(新規・パスワード不要の公開ページ)が独立して成立する。`/events/[slug]` は `(admin)/events/edit/[id]`(編集用、パスワード保護、あえてID方式)とは別物。
 
-モーダル・`/events/[slug]` ページとも、パーマリンクの隣に小さく「編集」リンク(`/events/edit/${event.id}`)を置いている。パスワード保護された管理ページへの導線だが、RLSがもともとanonキー書き込みを許可している(= このパスワードはUIの軽い鍵でしかない)という前提に沿って、誰でも踏める場所に出すことを許容している。
+モーダルには、パーマリンクの隣に小さく「編集」リンク(`/events/edit/${event.id}`)を置いている。パスワード保護された管理ページへの導線だが、RLSがもともとanonキー書き込みを許可している(= このパスワードはUIの軽い鍵でしかない)という前提に沿って、誰でも踏める場所に出すことを許容している。`EventCard` 自体にも同じ「編集」リンクを `CardAction`(shadcnのcard.tsxに元からあるグリッド配置用プリミティブ、`CardHeader` 内に置くと右上に寄る)で置いているので、`EventCard` を使う全ページ(トップ・`/calendar/[year]/[month]`・`/events`・`/events/[slug]`・`/venues/[slug]`)で編集導線がカード右上に出る。`/events/[slug]` ページ自体が持っていた専用の編集リンクは、`EventCard` 側に出るようになったため重複を避けて削除した。
 
 **注意**: モーダルの中身は `EventCard` をそのまま使わず、`SetlistView` の代わりに `InteractiveSetlist`、`EventLinks` の代わりに `EventLinksClient` で自前に組んでいる。`EventLinks`(OGPプレビュー付きリンクカード)は `async function` のServer Componentで、クライアントコンポーネントのツリーに直接持ち込むと `Only Server Components can be async` でクラッシュするため。
 
