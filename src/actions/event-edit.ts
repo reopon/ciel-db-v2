@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { getSupabaseClient } from "@/lib/supabase"
-import { findOrCreateVenueId } from "@/lib/events"
+import { findOrCreateVenueId, findOrCreateStageCostumeId } from "@/lib/events"
 import type { ActionState } from "@/lib/action-state"
 import type { SetlistRowPayload } from "@/lib/types"
 
@@ -13,7 +13,8 @@ export async function updateEventAction(_prevState: ActionState, formData: FormD
   const newVenueName = String(formData.get("newVenueName") ?? "").trim()
   const isoDate = String(formData.get("date") ?? "").trim()
   const notes = String(formData.get("notes") ?? "").trim() || null
-  const stageCostume = String(formData.get("stageCostume") ?? "").trim() || null
+  const stageCostumeIdField = String(formData.get("stageCostumeId") ?? "").trim()
+  const newStageCostumeName = String(formData.get("newStageCostumeName") ?? "").trim()
   const displayOrderField = String(formData.get("displayOrder") ?? "").trim()
   const displayOrder = displayOrderField && Number.isInteger(Number(displayOrderField)) ? Number(displayOrderField) : null
 
@@ -47,6 +48,14 @@ export async function updateEventAction(_prevState: ActionState, formData: FormD
       ? Number(venueIdField)
       : null
 
+  // Same pattern as venue: a newly-typed costume name wins over the
+  // dropdown selection.
+  const stageCostumeId = newStageCostumeName
+    ? await findOrCreateStageCostumeId(supabase, newStageCostumeName)
+    : stageCostumeIdField
+      ? Number(stageCostumeIdField)
+      : null
+
   const { error: eventError } = await supabase
     .from("events")
     .update({
@@ -54,7 +63,7 @@ export async function updateEventAction(_prevState: ActionState, formData: FormD
       venue_id: venueId,
       date: isoDate,
       notes,
-      stage_costume: stageCostume,
+      stage_costume_id: stageCostumeId,
       display_order: displayOrder,
       updated_at: new Date().toISOString(),
     })

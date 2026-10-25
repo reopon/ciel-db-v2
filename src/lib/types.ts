@@ -23,6 +23,11 @@ export interface Venue {
   slug: string
 }
 
+export interface StageCostume {
+  id: number
+  name: string
+}
+
 export interface Event {
   id: number
   slug: string
@@ -30,7 +35,7 @@ export interface Event {
   date: string
   venue: Venue | null
   notes: string | null
-  stage_costume: string | null
+  stage_costume: StageCostume | null
   display_order: number | null
 }
 

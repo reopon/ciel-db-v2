@@ -5,7 +5,7 @@ import { useActionState } from "react"
 import { Button } from "@/components/ui/button"
 import { updateEventAction } from "@/actions/event-edit"
 import { initialActionState } from "@/lib/action-state"
-import type { EventWithSetlist, Song, SetlistRowPayload, Venue } from "@/lib/types"
+import type { EventWithSetlist, Song, SetlistRowPayload, StageCostume, Venue } from "@/lib/types"
 
 interface RowState {
   key: string
@@ -40,10 +40,12 @@ export function EventEditForm({
   event,
   songs,
   venues,
+  stageCostumes,
 }: {
   event: EventWithSetlist
   songs: Pick<Song, "id" | "slug" | "title">[]
   venues: Pick<Venue, "id" | "name">[]
+  stageCostumes: Pick<StageCostume, "id" | "name">[]
 }) {
   const [state, formAction, pending] = useActionState(updateEventAction, initialActionState)
 
@@ -119,11 +121,19 @@ export function EventEditForm({
           <textarea name="notes" rows={2} defaultValue={event.notes ?? ""} className={inputClass} />
         </Field>
         <Field label="衣装">
+          <select name="stageCostumeId" defaultValue={event.stage_costume?.id ?? ""} className={inputClass}>
+            <option value="">選択してください</option>
+            {stageCostumes.map((costume) => (
+              <option key={costume.id} value={costume.id}>
+                {costume.name}
+              </option>
+            ))}
+          </select>
           <input
-            name="stageCostume"
+            name="newStageCostumeName"
             type="text"
-            defaultValue={event.stage_costume ?? ""}
-            className={inputClass}
+            placeholder="新しい衣装を追加(入力すると上の選択より優先されます)"
+            className={`${inputClass} mt-1.5`}
           />
         </Field>
         <Field label="表示順(同日内。空なら登録順)">

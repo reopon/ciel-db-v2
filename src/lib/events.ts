@@ -1,5 +1,5 @@
 import { getSupabaseClient } from "@/lib/supabase"
-import type { Event, EventWithSetlist, Song, Venue } from "@/lib/types"
+import type { Event, EventWithSetlist, Song, StageCostume, Venue } from "@/lib/types"
 
 interface RawSetlistRow {
   order: number
@@ -20,8 +20,9 @@ interface RawEvent extends Omit<Event, "venue"> {
 }
 
 const EVENT_SELECT = `
-  id, slug, event_name, date, notes, stage_costume, display_order,
+  id, slug, event_name, date, notes, display_order,
   venue:venues ( id, name, slug ),
+  stage_costume:stage_costumes ( id, name ),
   setlists (
     order, note_before, note_after,
     songs ( id, slug, title, release_date, lyricist, composer, arranger, choreographer, notes )
@@ -137,6 +138,20 @@ export async function fetchVenuesForPicker(): Promise<Pick<Venue, "id" | "name">
   return data
 }
 
+export async function fetchStageCostumesForPicker(): Promise<Pick<StageCostume, "id" | "name">[]> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase
+    .from("stage_costumes")
+    .select("id, name")
+    .order("name", { ascending: true })
+
+  if (error) {
+    console.error(error)
+    return []
+  }
+  return data
+}
+
 export async function fetchVenueBySlug(slug: string): Promise<Venue | null> {
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
@@ -225,6 +240,41 @@ export async function findOrCreateVenueId(
 
   const { data: created, error: insertError } = await supabase
     .from("venues")
+    .insert([{ name: trimmed }])
+    .select("id")
+    .single()
+
+  if (insertError) {
+    console.error(insertError)
+    return null
+  }
+  return created.id
+}
+
+// Same pattern as findOrCreateVenueId — the one place new stage costumes
+// get created from free text, so a blank/whitespace-only name resolves to
+// null rather than creating a junk row.
+export async function findOrCreateStageCostumeId(
+  supabase: ReturnType<typeof getSupabaseClient>,
+  name: string
+): Promise<number | null> {
+  const trimmed = name.trim()
+  if (!trimmed) return null
+
+  const { data: existing, error: selectError } = await supabase
+    .from("stage_costumes")
+    .select("id")
+    .eq("name", trimmed)
+    .maybeSingle()
+
+  if (selectError) {
+    console.error(selectError)
+    return null
+  }
+  if (existing) return existing.id
+
+  const { data: created, error: insertError } = await supabase
+    .from("stage_costumes")
     .insert([{ name: trimmed }])
     .select("id")
     .single()
