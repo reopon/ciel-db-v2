@@ -62,10 +62,16 @@ Supabase を読むページは `export const dynamic = "force-dynamic"` を必�
 
 保存(`src/actions/event-edit.ts` の `updateEventAction`)はセットリスト・関連URLとも**差分更新ではなく全削除→再insert**という割り切った実装(低頻度の個人管理ツールのため)。ナビゲーションには出していない(`/register` と同じ扱い)。
 
-### 楽曲ページ(`/music`, `/music/composers`, `/music/lyricists`, `/music/arrangers`, `/music/[slug]`)
-`/music` は `is_repertoire=true` の曲を発売日順にテーブル表示。作曲者別・作詞者別・編曲者別は3ページとも `src/components/GroupedSongs.tsx`(`field: "composer"|"lyricist"|"arranger"` を取るだけの共通コンポーネント)で、担当者名で曲をグルーピングして表示する。グループの並び順は曲数の多い順(`fetchGrouped`内で`.sort((a,b) => b[1].length - a[1].length || a[0].localeCompare(b[0], "ja"))`、同数はあいうえお順でタイブレーク — `fetchVenuesWithEventCounts`と同じパターン)。各曲カードには副情報として「もう一つの役割」を添えているが、3フィールドあるので二択の相互トグルにはできず、`FIELD_ORDER = ["composer", "lyricist", "arranger"]` の中で自分以外の最初の項目を機械的に選んでいる(composerページ→lyricist、lyricistページ→composer、arrangerページ→composer、という表示になる)。
+### 楽曲ページ(`/music`, `/music/lyricists`, `/music/composers`, `/music/arrangers`, `/music/choreographers`, `/music/[slug]`)
+`/music` 配下は「同じ曲コレクションに対するソート/グルーピングの違い」という位置づけで、発表順・作詞別・作曲別・編曲別・振付別の5ビューをタブで束ねている。実装はルートグループ `src/app/music/(collections)/` に `layout.tsx`(共通の見出し「楽曲」+ `MusicTabs`)を置き、5つの `page.tsx` をその中に収める構成(URLはルートグループの影響を受けないので `/music`, `/music/composers` 等そのまま)。`/music/[slug]`(個別曲ページ)はこのグループの外にあり、タブは出ない。
 
-いずれもナビには出していない(`/music` の見出し行に「作曲者別」「作詞者別」「編曲者別」という小さいリンクを置いているだけ — ユーザーの要望通り「メニューには出さない」導線)。
+`src/components/MusicTabs.tsx` はクライアントコンポーネントで `usePathname()` によりアクティブなタブを判定する実際の `<Link>` 群(`@radix-ui/react-tabs` 等の新規ライブラリは使っていない — 各「タブ」は別々のURLとしてSSRされる個別ページなので、同一ページ内でパネルを切り替えるタブUIライブラリとは要件が異なるため)。`/music` だけは `pathname === "/music"` の厳密一致、他4タブは `startsWith` で判定している(`/music` を `startsWith` で判定すると他の全タブ用URLもこれにマッチしてしまうバグになるため、意図的に分けている)。
+
+発表順(`/music`)は `fetchRepertoireSongs`(`src/lib/songs.ts`)で `is_repertoire=true` の曲を発売日順に取得し、`src/components/SongTable.tsx` でテーブル表示する。作詞別・作曲別・編曲別・振付別の4ページは `src/components/GroupedSongs.tsx`(`field: "composer"|"lyricist"|"arranger"|"choreographer"` を取るだけの共通コンポーネント)で、担当者名で曲をグルーピングして表示する。グループの並び順は曲数の多い順(`fetchGrouped`内で`.sort((a,b) => b[1].length - a[1].length || a[0].localeCompare(b[0], "ja"))`、同数はあいうえお順でタイブレーク — `fetchVenuesWithEventCounts`と同じパターン)。各曲カードには副情報として「もう一つの役割」を添えているが、4フィールドあるので二択の相互トグルにはできず、`FIELD_ORDER = ["composer", "lyricist", "arranger", "choreographer"]` の中で自分以外の最初の項目を機械的に選んでいる(composerページ→lyricist、それ以外のページ→composer、という表示になる)。
+
+いずれもナビには出していない(ハンバーガーメニューにも `/music` 配下の個別ビューは置かず、`/music` 本体からタブで辿る導線のみ — ユーザーの要望通り「メニューには出さない」方針を維持)。
+
+**披露回数順ビューは一旦見送り**: 当初「披露回数順」というソートも検討したが、(1)披露回数データがまだ全件入力しきれておらず不正確、(2)披露回数は曲ごとのページ(`/music/[slug]`)の披露履歴で既に確認できる、(3)「ランキング化」すること自体への抵抗感、という理由でユーザー判断により今回は実装していない。データが揃えば将来的に再検討する余地がある(`fetchSongsWithPerformanceCounts`のような `fetchVenuesWithEventCounts` 同型の集計関数を追加すれば技術的には容易)。
 
 ### 会場別ページ(`/venues`, `/venues/[slug]`)
 `/music`・`/music/composers` 等と同じ構造。一覧(`/venues`)は `fetchVenuesWithEventCounts`(venuesとeventsを別クエリで取得してJS側でカウント集計、`groupByYearMonth`等と同じ「単純な集計はJSでやる」という既存方針を踏襲)で公演数の多い順にテーブル表示、詳細(`/venues/[slug]`)はその会場の `EventCard` を日付降順で並べる(披露履歴のような軽量リストではなく、`/events` と同じ「その会場で何が起きたか」が主目的のページなのでフルの `EventCard` を採用)。ナビにも「会場別」として出している(`/music/composers`等とは違い、ユーザー自身が要望した導線のため)。

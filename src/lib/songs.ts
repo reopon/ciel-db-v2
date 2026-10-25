@@ -8,6 +8,24 @@ export async function fetchSongBySlug(slug: string): Promise<Song | null> {
   return data
 }
 
+// For /music (発表順). is_repertoire filters out historical/cover songs
+// that can still appear in a setlist but aren't part of the current lineup.
+export async function fetchRepertoireSongs(): Promise<Song[]> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase
+    .from("songs")
+    .select("*")
+    .eq("is_repertoire", true)
+    .order("release_date", { ascending: true })
+    .order("id", { ascending: true })
+
+  if (error) {
+    console.error(error)
+    return []
+  }
+  return data
+}
+
 export interface SongPerformance {
   id: number
   event_name: string

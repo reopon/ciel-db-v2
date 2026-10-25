@@ -3,19 +3,20 @@ import { getSupabaseClient } from "@/lib/supabase"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { Song } from "@/lib/types"
 
-type GroupField = "composer" | "lyricist" | "arranger"
+type GroupField = "composer" | "lyricist" | "arranger" | "choreographer"
 
 const FIELD_LABEL: Record<GroupField, string> = {
   composer: "作曲",
   lyricist: "作詞",
   arranger: "編曲",
+  choreographer: "振付",
 }
 
 // Secondary info line under each song card: the first other field in this
 // fixed order, so composer/lyricist keep their existing pairing and the
-// new arranger page gets a sensible default (composer) without needing a
-// 3-way toggle.
-const FIELD_ORDER: GroupField[] = ["composer", "lyricist", "arranger"]
+// arranger/choreographer pages get a sensible default (composer) without
+// needing a per-field toggle.
+const FIELD_ORDER: GroupField[] = ["composer", "lyricist", "arranger", "choreographer"]
 
 async function fetchGrouped(field: GroupField): Promise<[string, Song[]][]> {
   const supabase = getSupabaseClient()
@@ -42,41 +43,37 @@ async function fetchGrouped(field: GroupField): Promise<[string, Song[]][]> {
   )
 }
 
-export async function GroupedSongs({ field, pageTitle }: { field: GroupField; pageTitle: string }) {
+export async function GroupedSongs({ field }: { field: GroupField }) {
   const groups = await fetchGrouped(field)
   const otherField = FIELD_ORDER.find((f) => f !== field)!
 
   return (
-    <main className="max-w-3xl mx-auto px-4 py-8 space-y-6">
-      <h1 className="text-2xl font-display tracking-wide font-semibold">{pageTitle}</h1>
-
-      <div className="space-y-6">
-        {groups.map(([name, songs]) => (
-          <Card key={name}>
-            <CardHeader>
-              <CardTitle className="text-base">
-                {name} ({songs.length}曲)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {songs.map((song) => (
-                  <Link
-                    key={song.id}
-                    href={`/music/${song.slug}`}
-                    className="p-2 rounded-md border hover:bg-accent/50 block"
-                  >
-                    <div className="font-medium text-sm text-brand">{song.title}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {FIELD_LABEL[otherField]}: {song[otherField] || "-"}
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    </main>
+    <div className="space-y-6">
+      {groups.map(([name, songs]) => (
+        <Card key={name}>
+          <CardHeader>
+            <CardTitle className="text-base">
+              {name} ({songs.length}曲)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {songs.map((song) => (
+                <Link
+                  key={song.id}
+                  href={`/music/${song.slug}`}
+                  className="p-2 rounded-md border hover:bg-accent/50 block"
+                >
+                  <div className="font-medium text-sm text-brand">{song.title}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {FIELD_LABEL[otherField]}: {song[otherField] || "-"}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   )
 }
