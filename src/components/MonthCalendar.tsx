@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { InteractiveSetlist } from "@/components/InteractiveSetlist"
+import { EventLinksClient } from "@/components/EventLinksClient"
 import { formatDate } from "@/lib/format"
 import type { EventWithSetlist } from "@/lib/types"
 
@@ -106,11 +107,6 @@ export function MonthCalendar({
         </div>
       </div>
 
-      {/* EventLinks (OGP preview cards) is an async Server Component, which
-          can't render inside this client-side modal — it only works on the
-          server-rendered /events/[slug] page. The modal shows plain link
-          text instead, favoring a fast "quick zap" preview over rich
-          previews; the OGP cards are one tap away via the permalink below. */}
       <Dialog open={selected != null} onOpenChange={(open) => !open && setSelected(null)}>
         <DialogContent className="max-w-xl">
           {selected && (
@@ -125,21 +121,7 @@ export function MonthCalendar({
                 </CardHeader>
                 <CardContent className="px-0">
                   <InteractiveSetlist setlist={selected.setlist} />
-                  {selected.linkUrls.length > 0 && (
-                    <div className="space-y-1 pt-3 mt-3 border-t">
-                      {selected.linkUrls.map((url) => (
-                        <a
-                          key={url}
-                          href={url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block truncate text-sm text-brand underline underline-offset-2 decoration-brand/40 hover:decoration-brand"
-                        >
-                          {url}
-                        </a>
-                      ))}
-                    </div>
-                  )}
+                  <EventLinksClient urls={selected.linkUrls} />
                 </CardContent>
               </Card>
               <div className="flex items-center justify-between gap-2">

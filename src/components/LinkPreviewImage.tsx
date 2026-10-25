@@ -16,7 +16,7 @@ export function LinkPreviewImage({ src, alt }: { src: string; alt: string }) {
       src={src}
       alt={alt}
       onError={() => setFailed(true)}
-      className="w-20 h-20 object-cover rounded-md border shrink-0 bg-muted"
+      className="w-28 h-28 object-cover rounded-md border shrink-0 bg-muted"
       loading="lazy"
     />
   )
