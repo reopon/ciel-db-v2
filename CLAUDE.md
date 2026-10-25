@@ -36,7 +36,8 @@ npm run lint     # eslint
 - `venues`: id, name(unique), slug(ランダム8文字、`0009_venue_slug.sql`で追加、`/venues/[slug]`用) — `0008_venues.sql` で `events.location` から名寄せして移行。同じビル内でも別フロア/別ステージは別会場として区別している(例: GOTANDA G4とG7)。`events.location` カラム自体は突き合わせ用にまだ残っている(アプリ側はもう参照しない、削除は検証後に別migrationで行う予定)。新規会場の作成は `src/lib/events.ts` の `findOrCreateVenueId`(名前で検索→無ければinsert)を通す。
 - `setlists`: id, event_id, song_id, order(欠番なしの曲番号), note_before, note_after
 - `event_links`: id, event_id, url, order — イベントに紐づくX投稿/ブログ等のURL、OGPプレビュー表示用
-- `events` には他に created_at, updated_at(`0006`追従時は `upteded_at` というタイポだったが`0007`でリネーム済み), stage_costume(その回の衣装。メンバーの自撮り等から手動入力、随時埋めていく運用)もある。もともと SQL Editor から直接追加されたもので migration には無かったが、`0006_event_update_fields.sql` で追従済み。
+- `events` には他に created_at, updated_at(`0006`追従時は `upteded_at` というタイポだったが`0007`でリネーム済み)もある。もともと SQL Editor から直接追加されたもので migration には無かったが、`0006_event_update_fields.sql` で追従済み。
+- `stage_costumes`: id, name(unique) — `0012_stage_costumes.sql` で新設、`events.stage_costume`(自由記述)を`stage_costume_id`というFKに正規化(venuesと全く同じパターン)。初期7件を投入済み。属性はnameのみ(その回の衣装。メンバーの自撮り等から手動入力、随時埋めていく運用)。`events.stage_costume` カラム自体は突き合わせ用にまだ残っている(venuesの`location`と同じ扱い)。新規衣装の作成は `src/lib/events.ts` の `findOrCreateStageCostumeId`(`findOrCreateVenueId`と同型)を通す。
 - `events.display_order`(`0011_event_display_order.sql`で追加、nullable integer): 同日に複数イベントがある場合の表示順。`fetchEvents`/`fetchEventsByDate`/`fetchEventsByVenueId` は `date desc → display_order asc(nulls last) → id asc` の順でソートするので、未設定(null)のイベントは常にid順(≒登録順)で後ろに並ぶ。`EventEditForm`の「表示順」欄から編集可能。
 - `about_entries`: id, title(nullable), body, is_visible, order — `/about` の表示内容。1行1セクションで、`is_visible=true` のものを `order` 昇順で表示する。`body` 内の素のURLは `src/app/about/page.tsx` の `linkify` がそのままリンク化する(記法なし)。編集はSupabaseのTable Editorから直接行う想定で、サイト側に編集UIはない。
 - 新規/リネーム後のテーブルは RLS ポリシーを引き継がない。テーブルを追加・再作成したら必ず `enable row level security` + 読み書きポリシーをセットで追加すること(0002, 0003 で実際に踏んだ地雷)。
@@ -80,7 +81,14 @@ URL遍歴: 旧「アーカイブ」(`/archive`、検索+月別`EventCard`一覧)
 
 モーダル・`/events/[slug]` ページとも、パーマリンクの隣に小さく「編集」リンク(`/events/edit/${event.id}`)を置いている。パスワード保護された管理ページへの導線だが、RLSがもともとanonキー書き込みを許可している(= このパスワードはUIの軽い鍵でしかない)という前提に沿って、誰でも踏める場所に出すことを許容している。
 
-**注意**: モーダルの中身は `EventCard` をそのまま使わず、`SetlistView` + 素のリンク(`<a>`のみ、OGPプレビューなし)で自前に組んでいる。`EventLinks`(OGPプレビュー付きリンクカード)は `async function` のServer Componentで、クライアントコンポーネントのツリーに持ち込むと `Only Server Components can be async` でクラッシュするため。OGPプレビュー付きの完全な表示は `/events/[slug]` ページ(サーバーレンダリング)側だけで見られる。
+**注意**: モーダルの中身は `EventCard` をそのまま使わず、`SetlistView` の代わりに `InteractiveSetlist`、`EventLinks` の代わりに `EventLinksClient` で自前に組んでいる。`EventLinks`(OGPプレビュー付きリンクカード)は `async function` のServer Componentで、クライアントコンポーネントのツリーに直接持ち込むと `Only Server Components can be async` でクラッシュするため。
+
+### 関連URLのOGPプレビュー(カード表示をモーダルでも統一)
+最初はこの制約を理由にモーダル内は素のURLリンクのみにしていたが、「カードは画像つきなのにモーダルは味気ない」という指摘を受けて統一した。カード描画そのもの(`<img>` + タイトル + description + サイト名)は `src/components/LinkPreviewCard.tsx` に切り出し、純粋な同期コンポーネント(hooksなし)にしてサーバー/クライアント両方から安全に使えるようにしてある:
+- `EventLinks`(サーバー、`EventCard`経由で`/events/[slug]`・`/calendar/[year]/[month]`・`/venues/[slug]`等)は従来通り`fetchLinkPreview`を直接awaitしてから`LinkPreviewCard`を並べる。
+- `EventLinksClient`(クライアント、`MonthCalendar`のモーダル専用)は`src/actions/link-previews.ts`の`fetchLinkPreviewsAction`(読み取り専用Server Action、`fetchRecentSongPerformancesAction`と同じ理由で存在)をマウント時に呼び、取得が終わるまでは素のURLリンク、終わったら`LinkPreviewCard`に差し替える。
+
+プレビュー画像(`src/components/LinkPreviewImage.tsx`)は`w-20`(80px)から`w-28`(112px)に拡大した。
 
 ### 曲名クリックのモーダル化(`src/components/InteractiveSetlist.tsx`)
 セットリストの曲名クリックも同じザッピング思想で、`/music/[slug]` へのフルページ遷移の代わりにモーダルで曲情報(発売日・作詞・作曲・編曲・振付。`song` オブジェクトに元から含まれているため追加fetch不要)+ 直近5回の披露履歴(巨大化を避けるため絞っている。`src/lib/songs.ts` の `fetchSongPerformances(songId, limit)`、全件取得が要る `/music/[slug]` 側では `limit` 省略)を表示する。披露履歴の取得は `src/actions/songs.ts` の `fetchRecentSongPerformancesAction`(読み取り専用だが、クライアントコンポーネントから呼ぶために Server Action にしている — 唯一の読み取り用途のServer Action)。
