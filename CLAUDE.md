@@ -62,6 +62,8 @@ Supabase を読むページは `export const dynamic = "force-dynamic"` を必�
 
 保存(`src/actions/event-edit.ts` の `updateEventAction`)はセットリスト・関連URLとも**差分更新ではなく全削除→再insert**という割り切った実装(低頻度の個人管理ツールのため)。ナビゲーションには出していない(`/register` と同じ扱い)。
 
+**保存後に`<select>`が見た目だけ選択解除される不具合への対処**: `EventEditForm`で保存すると、セットリストの曲プルダウンが「選択してください」に戻って見える不具合をユーザーが実機で発見。調査の結果、**React 19の`<form action={...}>`は、成功したアクションの後に`<select>`要素をSSR/マウント時点のデフォルト値に自動リセットする**(`<input type="text">`等は影響なし、`<select>`限定。Reactが制御している`value`props付きのselectでも、uncontrolledな`defaultValue`のselectでも、どちらも対象になることをこのプロジェクト内に隔離した再現用ルートで実証済み — 保存自体やDBの値は正しいが、画面上の表示だけがリセットされる)。セットリストの曲選択(`value`制御)・会場(`venueId`)・衣装(`stageCostumeId`、どちらも`defaultValue`制御)の3つの`<select>`が対象。対処として、各selectに`ref`を持たせ、`onChange`で"今ユーザーが選んでいる値"を別途ref(`venueValueRef`/`stageCostumeValueRef`)またはReact state(`rows`)に保持しておき、`useActionState`の`state`が変化する(=アクションが完了する)たびに`useEffect`でDOMの`.value`を正しい値に書き戻す、という力技で対応している。
+
 ### 楽曲ページ(`/music`, `/music/lyricists`, `/music/composers`, `/music/arrangers`, `/music/choreographers`, `/music/[slug]`)
 `/music` 配下は「同じ曲コレクションに対するソート/グルーピングの違い」という位置づけで、発表順・作詞別・作曲別・編曲別・振付別の5ビューをタブで束ねている。実装はルートグループ `src/app/music/(collections)/` に `layout.tsx`(共通の見出し「楽曲」+ `MusicTabs`)を置き、5つの `page.tsx` をその中に収める構成(URLはルートグループの影響を受けないので `/music`, `/music/composers` 等そのまま)。`/music/[slug]`(個別曲ページ)はこのグループの外にあり、タブは出ない。
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useActionState } from "react"
 import { Button } from "@/components/ui/button"
 import { Field } from "@/components/FormField"
@@ -60,6 +60,30 @@ export function EventEditForm({
   const updateLink = (key: string, url: string) =>
     setLinks((ls) => ls.map((l) => (l.key === key ? { ...l, url } : l)))
 
+  // Workaround for a React 19 quirk confirmed empirically: after a
+  // successful <form action> submission, every <select> in the form gets
+  // reset back to its SSR/mount-time default value — regardless of
+  // whether it's React-controlled (the per-row song picker) or
+  // uncontrolled (venue/stage costume, which use defaultValue) — even
+  // though the save itself succeeded and the underlying state is correct.
+  // Plain text/date/number inputs are unaffected, only <select>. These
+  // refs track the "true" current value for each select and re-assert it
+  // right after every action settles, undoing the browser's reset.
+  const venueSelectRef = useRef<HTMLSelectElement>(null)
+  const venueValueRef = useRef(String(event.venue?.id ?? ""))
+  const stageCostumeSelectRef = useRef<HTMLSelectElement>(null)
+  const stageCostumeValueRef = useRef(String(event.stage_costume?.id ?? ""))
+  const songSelectRefs = useRef<Map<string, HTMLSelectElement>>(new Map())
+
+  useEffect(() => {
+    if (venueSelectRef.current) venueSelectRef.current.value = venueValueRef.current
+    if (stageCostumeSelectRef.current) stageCostumeSelectRef.current.value = stageCostumeValueRef.current
+    for (const row of rows) {
+      const el = songSelectRefs.current.get(row.key)
+      if (el) el.value = row.songId != null ? String(row.songId) : ""
+    }
+  }, [state, rows])
+
   const setlistJson = JSON.stringify(
     rows
       .filter((r) => r.songId != null)
@@ -84,7 +108,15 @@ export function EventEditForm({
           <input name="eventName" type="text" required defaultValue={event.event_name} className={inputClass} />
         </Field>
         <Field label="会場">
-          <select name="venueId" defaultValue={event.venue?.id ?? ""} className={inputClass}>
+          <select
+            name="venueId"
+            ref={venueSelectRef}
+            defaultValue={event.venue?.id ?? ""}
+            onChange={(e) => {
+              venueValueRef.current = e.target.value
+            }}
+            className={inputClass}
+          >
             <option value="">選択してください</option>
             {venues.map((venue) => (
               <option key={venue.id} value={venue.id}>
@@ -106,7 +138,15 @@ export function EventEditForm({
           <textarea name="notes" rows={2} defaultValue={event.notes ?? ""} className={inputClass} />
         </Field>
         <Field label="衣装">
-          <select name="stageCostumeId" defaultValue={event.stage_costume?.id ?? ""} className={inputClass}>
+          <select
+            name="stageCostumeId"
+            ref={stageCostumeSelectRef}
+            defaultValue={event.stage_costume?.id ?? ""}
+            onChange={(e) => {
+              stageCostumeValueRef.current = e.target.value
+            }}
+            className={inputClass}
+          >
             <option value="">選択してください</option>
             {stageCostumes.map((costume) => (
               <option key={costume.id} value={costume.id}>
@@ -141,6 +181,10 @@ export function EventEditForm({
               </span>
               <div className="flex-1 space-y-1.5">
                 <select
+                  ref={(el) => {
+                    if (el) songSelectRefs.current.set(row.key, el)
+                    else songSelectRefs.current.delete(row.key)
+                  }}
                   value={row.songId ?? ""}
                   onChange={(e) => updateRow(row.key, { songId: e.target.value ? Number(e.target.value) : null })}
                   className={inputClass}
