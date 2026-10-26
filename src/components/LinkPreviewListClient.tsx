@@ -33,6 +33,7 @@ export function LinkPreviewListClient({ urls }: { urls: string[] }) {
 
   return (
     <div className="space-y-2 pt-3 mt-3 border-t">
+      <h2 className="text-sm font-semibold text-muted-foreground">関連リンク</h2>
       {previews == null
         ? urls.map((url) => (
             <a

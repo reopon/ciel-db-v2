@@ -10,6 +10,7 @@ export async function LinkPreviewList({ urls }: { urls: string[] }) {
 
   return (
     <div className="space-y-2 pt-3 mt-3 border-t">
+      <h2 className="text-sm font-semibold text-muted-foreground">関連リンク</h2>
       {previews.map((preview) => (
         <LinkPreviewCard key={preview.url} preview={preview} />
       ))}
