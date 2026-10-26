@@ -280,6 +280,6 @@ export function buildMonthLinks(
   return grouped
     .map(([key]) => key)
     .filter((key) => key !== excludeKey)
-    .sort((a, b) => b.localeCompare(a))
+    .sort((a, b) => a.localeCompare(b))
     .map((key) => ({ year: key.slice(0, 4), month: key.slice(5, 7) }))
 }
