@@ -94,6 +94,7 @@ export async function updateEventAction(_prevState: ActionState, formData: FormD
       order: i + 1,
       note_before: r.noteBefore || null,
       note_after: r.noteAfter || null,
+      note: r.note || null,
     }))
     const { error: insSetlistError } = await supabase.from("setlists").insert(inserts)
     if (insSetlistError) {

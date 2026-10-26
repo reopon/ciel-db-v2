@@ -32,6 +32,9 @@ export function SetlistView({
             >
               {entry.song.title}
             </Link>
+            {entry.note && (
+              <span className="text-[10px] text-muted-foreground align-super">{entry.note}</span>
+            )}
           </div>
           {entry.note_after && <NoteLine text={entry.note_after} />}
         </li>

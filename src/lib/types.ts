@@ -14,6 +14,7 @@ export interface SetlistEntry {
   order: number
   note_before: string | null
   note_after: string | null
+  note: string | null
   song: Song
 }
 
@@ -51,4 +52,5 @@ export interface SetlistRowPayload {
   songId: number
   noteBefore: string | null
   noteAfter: string | null
+  note: string | null
 }

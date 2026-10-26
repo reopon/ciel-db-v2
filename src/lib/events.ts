@@ -5,6 +5,7 @@ interface RawSetlistRow {
   order: number
   note_before: string | null
   note_after: string | null
+  note: string | null
   songs: Song
 }
 
@@ -24,7 +25,7 @@ const EVENT_SELECT = `
   venue:venues ( id, name, slug ),
   stage_costume:stage_costumes ( id, name ),
   setlists (
-    order, note_before, note_after,
+    order, note_before, note_after, note,
     songs ( id, slug, title, release_date, lyricist, composer, arranger, choreographer, notes )
   ),
   event_links ( url, order )
@@ -38,6 +39,7 @@ function mapRawEvent(event: RawEvent): EventWithSetlist {
         order: s.order,
         note_before: s.note_before,
         note_after: s.note_after,
+        note: s.note,
         song: s.songs,
       }))
       .sort((a, b) => a.order - b.order),

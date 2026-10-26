@@ -14,6 +14,7 @@ interface RowState {
   songId: number | null
   noteBefore: string
   noteAfter: string
+  note: string
 }
 
 interface LinkState {
@@ -40,13 +41,15 @@ export function EventEditForm({
       songId: entry.song.id,
       noteBefore: entry.note_before ?? "",
       noteAfter: entry.note_after ?? "",
+      note: entry.note ?? "",
     }))
   )
   const [links, setLinks] = useState<LinkState[]>(() =>
     event.linkUrls.map((url) => ({ key: newKey(), url }))
   )
 
-  const addRow = () => setRows((rs) => [...rs, { key: newKey(), songId: null, noteBefore: "", noteAfter: "" }])
+  const addRow = () =>
+    setRows((rs) => [...rs, { key: newKey(), songId: null, noteBefore: "", noteAfter: "", note: "" }])
   const removeRow = (key: string) => setRows((rs) => rs.filter((r) => r.key !== key))
   const moveRow = (key: string, dir: -1 | 1) =>
     setRows((rs) => moveItem(rs, rs.findIndex((r) => r.key === key), dir))
@@ -92,6 +95,7 @@ export function EventEditForm({
           songId: r.songId!,
           noteBefore: r.noteBefore || null,
           noteAfter: r.noteAfter || null,
+          note: r.note || null,
         })
       )
   )
@@ -196,6 +200,13 @@ export function EventEditForm({
                     </option>
                   ))}
                 </select>
+                <input
+                  type="text"
+                  placeholder="曲名の補足(任意、例: メドレーver.)"
+                  value={row.note}
+                  onChange={(e) => updateRow(row.key, { note: e.target.value })}
+                  className={inputClass}
+                />
                 <input
                   type="text"
                   placeholder="この曲の前のMC等(任意)"
