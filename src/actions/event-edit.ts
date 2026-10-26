@@ -9,8 +9,7 @@ import type { SetlistRowPayload } from "@/lib/types"
 export async function updateEventAction(_prevState: ActionState, formData: FormData): Promise<ActionState> {
   const eventId = Number(formData.get("eventId"))
   const eventName = String(formData.get("eventName") ?? "").trim()
-  const venueIdField = String(formData.get("venueId") ?? "").trim()
-  const newVenueName = String(formData.get("newVenueName") ?? "").trim()
+  const venueName = String(formData.get("venueName") ?? "").trim()
   const isoDate = String(formData.get("date") ?? "").trim()
   const notes = String(formData.get("notes") ?? "").trim() || null
   const stageCostumeIdField = String(formData.get("stageCostumeId") ?? "").trim()
@@ -39,14 +38,10 @@ export async function updateEventAction(_prevState: ActionState, formData: FormD
 
   const supabase = getSupabaseClient()
 
-  // A newly-typed venue name wins over the dropdown selection; otherwise
-  // use whatever the dropdown carried (the blank "選択してください" option
-  // resolves to null, intentionally clearing the venue).
-  const venueId = newVenueName
-    ? await findOrCreateVenueId(supabase, newVenueName)
-    : venueIdField
-      ? Number(venueIdField)
-      : null
+  // Same free-text + datalist pattern as /register's venue field — a
+  // blank field clears the venue, any other text resolves to an existing
+  // venue by exact name match or creates a new one.
+  const venueId = await findOrCreateVenueId(supabase, venueName)
 
   // Same pattern as venue: a newly-typed costume name wins over the
   // dropdown selection.

@@ -12,6 +12,7 @@ import type { EventWithSetlist, Song, SetlistRowPayload, StageCostume, Venue } f
 interface RowState {
   key: string
   songId: number | null
+  songTitle: string
   noteBefore: string
   noteAfter: string
   note: string
@@ -39,6 +40,7 @@ export function EventEditForm({
     event.setlist.map((entry) => ({
       key: newKey(),
       songId: entry.song.id,
+      songTitle: entry.song.title,
       noteBefore: entry.note_before ?? "",
       noteAfter: entry.note_after ?? "",
       note: entry.note ?? "",
@@ -49,12 +51,25 @@ export function EventEditForm({
   )
 
   const addRow = () =>
-    setRows((rs) => [...rs, { key: newKey(), songId: null, noteBefore: "", noteAfter: "", note: "" }])
+    setRows((rs) => [
+      ...rs,
+      { key: newKey(), songId: null, songTitle: "", noteBefore: "", noteAfter: "", note: "" },
+    ])
   const removeRow = (key: string) => setRows((rs) => rs.filter((r) => r.key !== key))
   const moveRow = (key: string, dir: -1 | 1) =>
     setRows((rs) => moveItem(rs, rs.findIndex((r) => r.key === key), dir))
   const updateRow = (key: string, patch: Partial<RowState>) =>
     setRows((rs) => rs.map((r) => (r.key === key ? { ...r, ...patch } : r)))
+
+  // The datalist only suggests titles — it doesn't constrain what gets
+  // typed, unlike the <select> this replaces. Resolve to the matching
+  // song's id on every keystroke; an unmatched title leaves songId null
+  // (same as an unselected row) so it's dropped from setlistJson below
+  // rather than silently saved against the wrong song.
+  const updateRowSongTitle = (key: string, title: string) => {
+    const match = songs.find((s) => s.title === title)
+    updateRow(key, { songTitle: title, songId: match ? match.id : null })
+  }
 
   const addLink = () => setLinks((ls) => [...ls, { key: newKey(), url: "" }])
   const removeLink = (key: string) => setLinks((ls) => ls.filter((l) => l.key !== key))
@@ -65,27 +80,17 @@ export function EventEditForm({
 
   // Workaround for a React 19 quirk confirmed empirically: after a
   // successful <form action> submission, every <select> in the form gets
-  // reset back to its SSR/mount-time default value — regardless of
-  // whether it's React-controlled (the per-row song picker) or
-  // uncontrolled (venue/stage costume, which use defaultValue) — even
-  // though the save itself succeeded and the underlying state is correct.
-  // Plain text/date/number inputs are unaffected, only <select>. These
-  // refs track the "true" current value for each select and re-assert it
-  // right after every action settles, undoing the browser's reset.
-  const venueSelectRef = useRef<HTMLSelectElement>(null)
-  const venueValueRef = useRef(String(event.venue?.id ?? ""))
+  // reset back to its SSR/mount-time default value — even though the save
+  // itself succeeded and the underlying state is correct. Plain text
+  // inputs (including the venue/song fields below, now datalist-backed
+  // text inputs rather than <select>s) are unaffected — only the
+  // remaining <select> (stage costume) still needs this.
   const stageCostumeSelectRef = useRef<HTMLSelectElement>(null)
   const stageCostumeValueRef = useRef(String(event.stage_costume?.id ?? ""))
-  const songSelectRefs = useRef<Map<string, HTMLSelectElement>>(new Map())
 
   useEffect(() => {
-    if (venueSelectRef.current) venueSelectRef.current.value = venueValueRef.current
     if (stageCostumeSelectRef.current) stageCostumeSelectRef.current.value = stageCostumeValueRef.current
-    for (const row of rows) {
-      const el = songSelectRefs.current.get(row.key)
-      if (el) el.value = row.songId != null ? String(row.songId) : ""
-    }
-  }, [state, rows])
+  }, [state])
 
   const setlistJson = JSON.stringify(
     rows
@@ -112,28 +117,18 @@ export function EventEditForm({
           <input name="eventName" type="text" required defaultValue={event.event_name} className={inputClass} />
         </Field>
         <Field label="会場">
-          <select
-            name="venueId"
-            ref={venueSelectRef}
-            defaultValue={event.venue?.id ?? ""}
-            onChange={(e) => {
-              venueValueRef.current = e.target.value
-            }}
-            className={inputClass}
-          >
-            <option value="">選択してください</option>
-            {venues.map((venue) => (
-              <option key={venue.id} value={venue.id}>
-                {venue.name}
-              </option>
-            ))}
-          </select>
           <input
-            name="newVenueName"
+            name="venueName"
             type="text"
-            placeholder="新しい会場を追加(入力すると上の選択より優先されます)"
-            className={`${inputClass} mt-1.5`}
+            list="venue-options"
+            defaultValue={event.venue?.name ?? ""}
+            className={inputClass}
           />
+          <datalist id="venue-options">
+            {venues.map((venue) => (
+              <option key={venue.id} value={venue.name} />
+            ))}
+          </datalist>
         </Field>
         <Field label="日付">
           <input name="date" type="date" required defaultValue={event.date} className={inputClass} />
@@ -184,22 +179,17 @@ export function EventEditForm({
                 {i + 1}
               </span>
               <div className="flex-1 space-y-1.5">
-                <select
-                  ref={(el) => {
-                    if (el) songSelectRefs.current.set(row.key, el)
-                    else songSelectRefs.current.delete(row.key)
-                  }}
-                  value={row.songId ?? ""}
-                  onChange={(e) => updateRow(row.key, { songId: e.target.value ? Number(e.target.value) : null })}
+                <input
+                  type="text"
+                  list="song-options"
+                  placeholder="曲名"
+                  value={row.songTitle}
+                  onChange={(e) => updateRowSongTitle(row.key, e.target.value)}
                   className={inputClass}
-                >
-                  <option value="">選択してください</option>
-                  {songs.map((song) => (
-                    <option key={song.id} value={song.id}>
-                      {song.title}
-                    </option>
-                  ))}
-                </select>
+                />
+                {row.songTitle && row.songId == null && (
+                  <p className="text-xs text-destructive">曲名が一致しません(一覧から選んでください)</p>
+                )}
                 <input
                   type="text"
                   placeholder="曲名の補足(任意、例: メドレーver.)"
@@ -245,6 +235,11 @@ export function EventEditForm({
         <Button type="button" variant="outline" size="sm" onClick={addRow}>
           + 曲を追加
         </Button>
+        <datalist id="song-options">
+          {songs.map((song) => (
+            <option key={song.id} value={song.title} />
+          ))}
+        </datalist>
       </section>
 
       <section className="space-y-3">
