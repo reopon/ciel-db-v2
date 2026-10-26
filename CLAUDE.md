@@ -79,6 +79,8 @@ Supabase を読むページは `export const dynamic = "force-dynamic"` を必�
 
 表示には、元々`EventLinks`/`EventLinksClient`という名前でイベント専用だったOGPプレビューコンポーネントを `LinkPreviewList`/`LinkPreviewListClient` に改名して流用(ロジックは`urls: string[]`を受け取るだけで元々entity非依存だったため、リネームのみで曲にも使える)。`EventCard`・`MonthCalendar`のイベントモーダルは`LinkPreviewList`/`LinkPreviewListClient`に、`/music/[slug]`は`LinkPreviewList`(Server Component)、`SongModal`は`LinkPreviewListClient`(Client Component)を使う。
 
+**`LinkPreviewCard`のタイトルはtruncateでなくline-clamp-2**: 実際にYouTubeのMVリンクを貼ったところ、長いタイトル("MV(フルサイズ) Gran☆Ciel「はじまりのPARADE」...")がDialog(`DialogContent`は`display:grid`)内で`truncate`(nowrap+ellipsis)されずカード全体が画面幅をはみ出し、モバイルでページ全体が横スクロールしてしまう不具合が実機で発覚した。原因はnowrapテキストの「1行分の内容幅」がgridの暗黙トラック幅を押し広げてしまうこと(`min-w-0`を内側のdivに付けていても、`<a>`自体やgridトラックまでは伝播しない)。`NoteLine`(セットリストのMC note)で過去に同種の横スクロール不具合を「nowrapでなくwrapさせる」方針で直した前例があり、今回も同じ方針で`LinkPreviewCard`のタイトル・descriptionを`truncate`から`line-clamp-2 break-words`に変更(2行で折り返し、幅を強制的に要求しない)、`<a>`にも念のため`min-w-0`を追加して解決。この修正は`EventCard`・`MonthCalendar`・`SongModal`すべてで共有される`LinkPreviewCard`への変更なので、イベント側の関連リンクにも同様に効く。
+
 **YouTubeリンクは`src/lib/ogp.ts`内で専用処理**: 当初は汎用のOGPメタタグスクレイピング(`fetchLinkPreview`の`<meta property="og:...">`パース)に任せていたが、本番で実際にYouTubeのMVリンクを貼ったところサムネイル・タイトルが取得できず、裸のURL表示にフォールバックする不具合が確認された。YouTubeの動画ページは数百KB〜1MB超あり、サーバーサイド(特にデータセンターIP)からの自動フェッチは同意ページへのリダイレクトや`FETCH_TIMEOUT_MS`(5秒)超過が起きやすいため。対処として、URLのhostnameが`youtube.com`/`youtu.be`系かを`isYouTubeUrl`で判定し、該当すればYouTube公式のoEmbedエンドポイント(`https://www.youtube.com/oembed?url=...&format=json`、軽量なJSONでtitle/author_name/thumbnail_urlを返す、まさにリンクプレビュー用途向けのAPI)を先に試す`fetchYouTubeOembed`を使う。oEmbedが失敗した場合(非公開/削除済み動画など)のみ、従来の汎用スクレイピングにフォールバックする。
 
 ### 会場別ページ(`/venues`, `/venues/[slug]`)
