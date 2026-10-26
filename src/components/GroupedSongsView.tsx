@@ -6,7 +6,7 @@ import type { Song } from "@/lib/types"
 
 export type GroupField = "composer" | "lyricist" | "arranger" | "choreographer"
 
-export function GroupedSongsView({ groups }: { groups: [string, Song[]][] }) {
+export function GroupedSongsView({ groups }: { groups: [string, (Song & { hasLinks: boolean })[]][] }) {
   const { selectedSong, handleSongClick, closeModal } = useSongModal()
 
   return (

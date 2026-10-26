@@ -17,22 +17,40 @@ export async function fetchSongById(id: number): Promise<Song | null> {
   return data
 }
 
+// Song ids that have at least one row in song_links, for the small "has
+// related links" icon shown in /music's listing views (SongTable,
+// GroupedSongsView). A plain id list + JS Set, same "simple aggregation
+// over cleverer SQL" pattern as fetchVenuesWithEventCounts.
+export async function fetchSongIdsWithLinks(): Promise<Set<number>> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase.from("song_links").select("song_id")
+
+  if (error || !data) {
+    console.error(error)
+    return new Set()
+  }
+  return new Set(data.map((row) => row.song_id as number))
+}
+
 // For /music (発表順). is_repertoire filters out historical/cover songs
 // that can still appear in a setlist but aren't part of the current lineup.
-export async function fetchRepertoireSongs(): Promise<Song[]> {
+export async function fetchRepertoireSongs(): Promise<(Song & { hasLinks: boolean })[]> {
   const supabase = getSupabaseClient()
-  const { data, error } = await supabase
-    .from("songs")
-    .select("*")
-    .eq("is_repertoire", true)
-    .order("release_date", { ascending: true })
-    .order("id", { ascending: true })
+  const [{ data, error }, linkedIds] = await Promise.all([
+    supabase
+      .from("songs")
+      .select("*")
+      .eq("is_repertoire", true)
+      .order("release_date", { ascending: true })
+      .order("id", { ascending: true }),
+    fetchSongIdsWithLinks(),
+  ])
 
   if (error) {
     console.error(error)
     return []
   }
-  return data
+  return (data as Song[]).map((song) => ({ ...song, hasLinks: linkedIds.has(song.id) }))
 }
 
 export interface SongPerformance {

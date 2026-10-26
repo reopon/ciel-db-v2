@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { Link2 } from "lucide-react"
 import type { Song } from "@/lib/types"
 
 // Pure presentational table — no hooks, same split as SetlistView: the
@@ -9,7 +10,7 @@ export function SongTable({
   songs,
   onSongClick,
 }: {
-  songs: Song[]
+  songs: (Song & { hasLinks?: boolean })[]
   onSongClick?: (e: React.MouseEvent, song: Song) => void
 }) {
   return (
@@ -28,13 +29,18 @@ export function SongTable({
           {songs.map((song) => (
             <tr key={song.id} className="hover:bg-accent/50">
               <td className="p-2 sticky left-0 bg-background">
-                <Link
-                  href={`/music/${song.slug}`}
-                  onClick={onSongClick ? (e) => onSongClick(e, song) : undefined}
-                  className="font-medium text-brand underline underline-offset-2 decoration-brand/40 hover:decoration-brand"
-                >
-                  {song.title}
-                </Link>
+                <span className="inline-flex items-center gap-1">
+                  <Link
+                    href={`/music/${song.slug}`}
+                    onClick={onSongClick ? (e) => onSongClick(e, song) : undefined}
+                    className="font-medium text-brand underline underline-offset-2 decoration-brand/40 hover:decoration-brand"
+                  >
+                    {song.title}
+                  </Link>
+                  {song.hasLinks && (
+                    <Link2 className="size-3 text-muted-foreground shrink-0" aria-label="関連リンクあり" />
+                  )}
+                </span>
               </td>
               <td className="p-2 text-muted-foreground">{song.lyricist || "-"}</td>
               <td className="p-2 text-muted-foreground">{song.composer || "-"}</td>

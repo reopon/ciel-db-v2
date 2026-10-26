@@ -82,6 +82,8 @@ Supabase を読むページは `export const dynamic = "force-dynamic"` を必�
 
 モーダルは各ページに1つだけ(`GroupedSongsView`はグループ数だけ`SongTable`を並べても`useSongModal`は1インスタンスだけ、各`SongTable`に同じ`handleSongClick`を渡して共有する — グループごとに別々のモーダルを持たせると表示中のDialogがグループ数だけ無駄に増えるため)。`/music`配下で曲名をクリックすると`/music/[slug]`へ直接遷移せず、`src/components/SongModal.tsx`(`useSongModal`フック + `SongModal`コンポーネント)のモーダルを1枚挟む。これは元々`InteractiveSetlist.tsx`(カレンダー・イベントのセットリスト用)にあった「曲名クリック→モーダル→披露履歴」の「ザップ」パターンをそのまま抽出・共通化したもので、`InteractiveSetlist`自身もこの共有フックを使うようにリファクタ済み。cmd/ctrl/shift+クリックは通常のリンク遷移にフォールバックする(`e.metaKey || e.ctrlKey || e.shiftKey`判定)。
 
+**曲に関連リンクがあることを示すアイコン**: `SongTable`(発表順・各グルーピング共通)の曲名の隣に、`song_links`が1件以上ある曲だけ`lucide-react`の`Link2`アイコンを小さく表示する(押せる必要はなく、あくまで目印)。`src/lib/songs.ts`の`fetchSongIdsWithLinks()`(`song_links`の`song_id`だけ取得してJSの`Set`に、`fetchVenuesWithEventCounts`と同じ「単純な集計はJSでやる」パターン)を`fetchRepertoireSongs()`・`GroupedSongs.tsx`の`fetchGrouped()`それぞれで並列取得し、各曲に`hasLinks: boolean`を合成して`SongTable`に渡す。
+
 いずれもナビには出していない(ハンバーガーメニューにも `/music` 配下の個別ビューは置かず、`/music` 本体からタブで辿る導線のみ — ユーザーの要望通り「メニューには出さない」方針を維持)。
 
 **披露回数順ビューは一旦見送り**: 当初「披露回数順」というソートも検討したが、(1)披露回数データがまだ全件入力しきれておらず不正確、(2)披露回数は曲ごとのページ(`/music/[slug]`)の披露履歴で既に確認できる、(3)「ランキング化」すること自体への抵抗感、という理由でユーザー判断により今回は実装していない。データが揃えば将来的に再検討する余地がある(`fetchSongsWithPerformanceCounts`のような `fetchVenuesWithEventCounts` 同型の集計関数を追加すれば技術的には容易)。
