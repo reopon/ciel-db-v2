@@ -32,7 +32,7 @@ npm run lint     # eslint
 
 ### スキーマ(`migrations/*.sql`が正、順に適用)
 - `songs`: id, slug(ランダム8文字、URL用、`/music/[slug]`), title, release_date, lyricist, composer, arranger, choreographer, note(`0015_rename_notes_to_note.sql`で`notes`から単数形にリネーム、`setlists.note`と命名を揃えた), **is_repertoire**(bool — `/music` の一覧に出す「持ち曲」かどうかのフラグ。生誕イベント等で数回しかやらないカバー曲を除外するためのもので、「カバー曲かどうか」とは別概念。**このカラムは migrations に SQL ファイルがなく、SQL Editor から直接追加されたもの**なので、スキーマの実態は Supabase 側が正、migrations ディレクトリだけを見ても追いつかない場合がある)
-- `events`: id, slug(ランダム8文字、`0010_event_slug.sql`で追加、公開URL`/events/[slug]`用。**管理編集ページ`/events/edit/[id]`はあえてID方式のまま**、各ページの「編集」リンクから内部的に遷移するだけの管理用キーであり人間が直接打ち込む・共有することは無いためスラッグ化していない), event_name, date, venue_id(`venues` へのFK。表記ゆれ対策で`0008`より前は自由記述の`location`だった), note(`0015_rename_notes_to_note.sql`で`notes`からリネーム。`EventEditForm`の編集フォームにはあるが読み取り専用の表示箇所は無い)
+- `events`: id, slug(ランダム8文字、`0010_event_slug.sql`で追加、公開URL`/events/[slug]`用。**管理編集ページ`/events/edit/[slug]`もこのslugを使う**(当初はID方式だったが、ユーザー判断でslug方式に統一)、event_name, date, venue_id(`venues` へのFK。表記ゆれ対策で`0008`より前は自由記述の`location`だった), note(`0015_rename_notes_to_note.sql`で`notes`からリネーム。`EventEditForm`の編集フォームにはあるが読み取り専用の表示箇所は無い)
 - `venues`: id, name(unique), slug(ランダム8文字、`0009_venue_slug.sql`で追加、`/venues/[slug]`用) — `0008_venues.sql` で `events.location` から名寄せして移行。同じビル内でも別フロア/別ステージは別会場として区別している(例: GOTANDA G4とG7)。`events.location` カラム自体は突き合わせ用にまだ残っている(アプリ側はもう参照しない、削除は検証後に別migrationで行う予定)。新規会場の作成は `src/lib/events.ts` の `findOrCreateVenueId`(名前で検索→無ければinsert)を通す。
 - `setlists`: id, event_id, song_id, order(欠番なしの曲番号), note_before, note_after, note(`0014_setlist_note.sql`で追加。note_before/note_afterが「曲の前後に起きたこと」なのに対し、こちらは曲名自体に添える補足、例: 「曲名 (メドレーver.)」。旧版の`setlists.notes`列はこの意味だったが、`0002`の移行時に`note_after`へ丸ごと統合されてしまっていた〈ユーザー指摘で発覚〉。既存データのうち本来これに該当する値(`note_after`の「メドレーver.」「Acoustic ver.」等)は自動移行せず、ユーザーが目視で`note`に入れ直す方針)
 
@@ -118,7 +118,7 @@ URL遍歴: 旧「アーカイブ」(`/archive`、検索+月別`EventCard`一覧)
 
 `/calendar` は `src/components/CalendarMonthsList.tsx`(クライアントコンポーネント)が本体を担う: **今月を常にページの先頭セクションとして固定**し(今月の見出し行の右に「未来のカレンダーを表示する」トグルボタンを置く)、未来の月は初期状態で非表示、トグルを押すと今月より上に展開される。過去の月は今月の下にそのまま並ぶ(`groupByYearMonth`の降順を利用)。これは「カレンダーを見に来た人がまず今月を見たいはず」という考えで、公演予定が先々まで登録されるようになったことで今月が埋もれないようにするための設計。今月に公演が無くても(`groupByYearMonth`は実績のある月しか返さないため)`grouped.find` のフォールバックで空配列を渡し、必ず今月のセクション自体は表示する。
 
-各日のイベントラベルは `"use client"` の `MonthCalendar` 内でモーダル(`src/components/ui/dialog.tsx`)を開く(ザッピングしたいという要望のため、フルページ遷移にはしていない)。クリックは `href="/events/[slug]"` を持つ実リンクのまま `onClick` で `preventDefault` しているだけなので、Ctrl/Cmd+クリックや右クリック→リンクをコピーは素のリンクとして機能し、SNS等への共有パーマリンクとして `/events/[slug]`(新規・パスワード不要の公開ページ)が独立して成立する。`/events/[slug]` は `(admin)/events/edit/[id]`(編集用、パスワード保護、あえてID方式)とは別物。
+各日のイベントラベルは `"use client"` の `MonthCalendar` 内でモーダル(`src/components/ui/dialog.tsx`)を開く(ザッピングしたいという要望のため、フルページ遷移にはしていない)。クリックは `href="/events/[slug]"` を持つ実リンクのまま `onClick` で `preventDefault` しているだけなので、Ctrl/Cmd+クリックや右クリック→リンクをコピーは素のリンクとして機能し、SNS等への共有パーマリンクとして `/events/[slug]`(新規・パスワード不要の公開ページ)が独立して成立する。`/events/[slug]` は `(admin)/events/edit/[slug]`(編集用、パスワード保護)とは別物。
 
 モーダルには、パーマリンクの隣に小さく「編集」リンク(`/events/edit/${event.id}`)を置いている。パスワード保護された管理ページへの導線だが、RLSがもともとanonキー書き込みを許可している(= このパスワードはUIの軽い鍵でしかない)という前提に沿って、誰でも踏める場所に出すことを許容している。`EventCard` 自体にも同じ「編集」リンクを `CardAction`(shadcnのcard.tsxに元からあるグリッド配置用プリミティブ、`CardHeader` 内に置くと右上に寄る)で置いているので、`EventCard` を使う全ページ(トップ・`/calendar/[year]/[month]`・`/events`・`/events/[slug]`・`/venues/[slug]`)で編集導線がカード右上に出る。`/events/[slug]` ページ自体が持っていた専用の編集リンクは、`EventCard` 側に出るようになったため重複を避けて削除した。
 

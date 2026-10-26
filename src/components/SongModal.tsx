@@ -105,7 +105,7 @@ export function SongModal({
                 この曲の全履歴を見る →
               </Link>
               <Link
-                href={`/music/edit/${selectedSong.song.id}`}
+                href={`/music/edit/${selectedSong.song.slug}`}
                 className="text-xs text-muted-foreground hover:underline shrink-0"
               >
                 編集

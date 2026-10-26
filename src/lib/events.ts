@@ -67,19 +67,6 @@ export async function fetchEvents(): Promise<EventWithSetlist[]> {
   return (data as unknown as RawEvent[]).map(mapRawEvent)
 }
 
-export async function fetchEventById(id: number): Promise<EventWithSetlist | null> {
-  const supabase = getSupabaseClient()
-  const { data, error } = await supabase.from("events").select(EVENT_SELECT).eq("id", id).maybeSingle()
-
-  if (error) {
-    console.error(error)
-    return null
-  }
-  if (!data) return null
-
-  return mapRawEvent(data as unknown as RawEvent)
-}
-
 export async function fetchEventBySlug(slug: string): Promise<EventWithSetlist | null> {
   const supabase = getSupabaseClient()
   const { data, error } = await supabase.from("events").select(EVENT_SELECT).eq("slug", slug).maybeSingle()

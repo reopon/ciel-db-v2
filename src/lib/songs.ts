@@ -8,15 +8,6 @@ export async function fetchSongBySlug(slug: string): Promise<Song | null> {
   return data
 }
 
-// For the admin edit page (/music/edit/[id]), which links by id rather
-// than slug — same split as fetchEventById/fetchEventBySlug.
-export async function fetchSongById(id: number): Promise<Song | null> {
-  const supabase = getSupabaseClient()
-  const { data, error } = await supabase.from("songs").select("*").eq("id", id).maybeSingle()
-  if (error || !data) return null
-  return data
-}
-
 // Song ids that have at least one row in song_links, for the small "has
 // related links" icon shown in /music's listing views (SongTable,
 // GroupedSongsView). A plain id list + JS Set, same "simple aggregation

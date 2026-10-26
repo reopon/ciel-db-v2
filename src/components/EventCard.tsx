@@ -15,7 +15,7 @@ export function EventCard({ event }: { event: EventWithSetlist }) {
         </CardDescription>
         <CardAction>
           <Link
-            href={`/events/edit/${event.id}`}
+            href={`/events/edit/${event.slug}`}
             className="text-xs text-muted-foreground hover:underline"
           >
             編集

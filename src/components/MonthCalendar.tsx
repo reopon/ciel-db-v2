@@ -132,7 +132,7 @@ export function MonthCalendar({
                   このイベントのページを開く →
                 </Link>
                 <Link
-                  href={`/events/edit/${selected.id}`}
+                  href={`/events/edit/${selected.slug}`}
                   className="text-xs text-muted-foreground hover:underline shrink-0"
                 >
                   編集

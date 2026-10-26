@@ -40,7 +40,7 @@ export default async function SongDetailPage({ params }: { params: Promise<{ slu
         <Link href="/music" className="text-sm text-brand underline underline-offset-2 decoration-brand/40 hover:decoration-brand">
           ← 楽曲一覧に戻る
         </Link>
-        <Link href={`/music/edit/${song.id}`} className="text-xs text-muted-foreground hover:underline shrink-0">
+        <Link href={`/music/edit/${song.slug}`} className="text-xs text-muted-foreground hover:underline shrink-0">
           編集
         </Link>
       </div>

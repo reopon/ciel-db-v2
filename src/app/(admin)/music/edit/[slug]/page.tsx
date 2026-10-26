@@ -1,23 +1,25 @@
 import Link from "next/link"
-import { fetchSongById, fetchSongLinks } from "@/lib/songs"
+import { fetchSongBySlug, fetchSongLinks } from "@/lib/songs"
 import { SongEditForm } from "@/components/SongEditForm"
 
 export const dynamic = "force-dynamic"
 
-export default async function SongEditPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
-  const [song, links] = await Promise.all([fetchSongById(Number(id)), fetchSongLinks(Number(id))])
+export default async function SongEditPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const song = await fetchSongBySlug(slug)
 
   if (!song) {
     return (
       <main className="max-w-xl mx-auto px-4 py-10 space-y-4">
-        <p className="text-sm text-muted-foreground">曲ID {id} は見つかりませんでした</p>
+        <p className="text-sm text-muted-foreground">曲が見つかりませんでした</p>
         <Link href="/music" className="text-sm text-brand underline underline-offset-2 decoration-brand/40 hover:decoration-brand">
           楽曲一覧に戻る
         </Link>
       </main>
     )
   }
+
+  const links = await fetchSongLinks(song.id)
 
   return (
     <main className="max-w-2xl mx-auto px-4 py-10 space-y-6">
