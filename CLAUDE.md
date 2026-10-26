@@ -79,6 +79,8 @@ Supabase を読むページは `export const dynamic = "force-dynamic"` を必�
 
 表示には、元々`EventLinks`/`EventLinksClient`という名前でイベント専用だったOGPプレビューコンポーネントを `LinkPreviewList`/`LinkPreviewListClient` に改名して流用(ロジックは`urls: string[]`を受け取るだけで元々entity非依存だったため、リネームのみで曲にも使える)。`EventCard`・`MonthCalendar`のイベントモーダルは`LinkPreviewList`/`LinkPreviewListClient`に、`/music/[slug]`は`LinkPreviewList`(Server Component)、`SongModal`は`LinkPreviewListClient`(Client Component)を使う。
 
+**YouTubeリンクは`src/lib/ogp.ts`内で専用処理**: 当初は汎用のOGPメタタグスクレイピング(`fetchLinkPreview`の`<meta property="og:...">`パース)に任せていたが、本番で実際にYouTubeのMVリンクを貼ったところサムネイル・タイトルが取得できず、裸のURL表示にフォールバックする不具合が確認された。YouTubeの動画ページは数百KB〜1MB超あり、サーバーサイド(特にデータセンターIP)からの自動フェッチは同意ページへのリダイレクトや`FETCH_TIMEOUT_MS`(5秒)超過が起きやすいため。対処として、URLのhostnameが`youtube.com`/`youtu.be`系かを`isYouTubeUrl`で判定し、該当すればYouTube公式のoEmbedエンドポイント(`https://www.youtube.com/oembed?url=...&format=json`、軽量なJSONでtitle/author_name/thumbnail_urlを返す、まさにリンクプレビュー用途向けのAPI)を先に試す`fetchYouTubeOembed`を使う。oEmbedが失敗した場合(非公開/削除済み動画など)のみ、従来の汎用スクレイピングにフォールバックする。
+
 ### 会場別ページ(`/venues`, `/venues/[slug]`)
 `/music`・`/music/composers` 等と同じ構造。一覧(`/venues`)は `fetchVenuesWithEventCounts`(venuesとeventsを別クエリで取得してJS側でカウント集計、`groupByYearMonth`等と同じ「単純な集計はJSでやる」という既存方針を踏襲)で公演数の多い順にテーブル表示、詳細(`/venues/[slug]`)はその会場の `EventCard` を日付降順で並べる(披露履歴のような軽量リストではなく、`/events` と同じ「その会場で何が起きたか」が主目的のページなのでフルの `EventCard` を採用)。ナビにも「会場別」として出している(`/music/composers`等とは違い、ユーザー自身が要望した導線のため)。
 

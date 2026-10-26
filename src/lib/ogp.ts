@@ -13,8 +13,61 @@ export interface LinkPreview {
 
 const FETCH_TIMEOUT_MS = 5000
 
+const YOUTUBE_HOSTS = new Set(["youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be"])
+
+function isYouTubeUrl(url: string): boolean {
+  try {
+    return YOUTUBE_HOSTS.has(new URL(url).hostname)
+  } catch {
+    return false
+  }
+}
+
+interface YouTubeOembedResponse {
+  title: string
+  author_name: string
+  thumbnail_url: string
+}
+
+// YouTube watch pages are large (500KB+) and automated/datacenter-IP
+// requests are prone to being served a stripped-down or consent-gated
+// page, which showed up in practice as the generic OGP scrape below
+// timing out or coming back empty. YouTube's oEmbed endpoint is built for
+// exactly this (lightweight link-preview metadata) and is far more
+// reliable, so YouTube links use it instead of the generic scrape.
+async function fetchYouTubeOembed(url: string): Promise<LinkPreview | null> {
+  try {
+    const res = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`, {
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      next: { revalidate: 60 * 60 * 24 },
+    })
+    if (!res.ok) return null
+
+    const data = (await res.json()) as YouTubeOembedResponse
+    return {
+      url,
+      title: data.title ?? null,
+      description: data.author_name ?? null,
+      image: data.thumbnail_url ?? null,
+      siteName: "YouTube",
+      ok: true,
+    }
+  } catch (err) {
+    console.error(`YouTube oEmbed failed for ${url}`, err)
+    return null
+  }
+}
+
 export async function fetchLinkPreview(url: string): Promise<LinkPreview> {
   const empty: LinkPreview = { url, title: null, description: null, image: null, siteName: null, ok: false }
+
+  if (isYouTubeUrl(url)) {
+    const oembed = await fetchYouTubeOembed(url)
+    if (oembed) return oembed
+    // Fall through to the generic scrape below as a last resort (e.g. a
+    // private/deleted video, where oEmbed 404s but the watch page might
+    // still render something).
+  }
 
   let res: Response
   try {
