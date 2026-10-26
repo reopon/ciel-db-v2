@@ -8,6 +8,15 @@ export async function fetchSongBySlug(slug: string): Promise<Song | null> {
   return data
 }
 
+// For the admin edit page (/music/edit/[id]), which links by id rather
+// than slug — same split as fetchEventById/fetchEventBySlug.
+export async function fetchSongById(id: number): Promise<Song | null> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase.from("songs").select("*").eq("id", id).maybeSingle()
+  if (error || !data) return null
+  return data
+}
+
 // For /music (発表順). is_repertoire filters out historical/cover songs
 // that can still appear in a setlist but aren't part of the current lineup.
 export async function fetchRepertoireSongs(): Promise<Song[]> {

@@ -97,12 +97,20 @@ export function SongModal({
               )}
             </div>
 
-            <Link
-              href={`/music/${selectedSong.song.slug}`}
-              className="text-xs text-muted-foreground hover:underline"
-            >
-              この曲の全履歴を見る →
-            </Link>
+            <div className="flex items-center justify-between gap-2">
+              <Link
+                href={`/music/${selectedSong.song.slug}`}
+                className="text-xs text-muted-foreground hover:underline"
+              >
+                この曲の全履歴を見る →
+              </Link>
+              <Link
+                href={`/music/edit/${selectedSong.song.id}`}
+                className="text-xs text-muted-foreground hover:underline shrink-0"
+              >
+                編集
+              </Link>
+            </div>
           </>
         )}
       </DialogContent>

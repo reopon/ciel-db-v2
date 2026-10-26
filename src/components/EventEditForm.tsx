@@ -3,8 +3,10 @@
 import { useState } from "react"
 import { useActionState } from "react"
 import { Button } from "@/components/ui/button"
+import { Field } from "@/components/FormField"
 import { updateEventAction } from "@/actions/event-edit"
 import { initialActionState } from "@/lib/action-state"
+import { inputClass, newKey, moveItem } from "@/lib/form-utils"
 import type { EventWithSetlist, Song, SetlistRowPayload, StageCostume, Venue } from "@/lib/types"
 
 interface RowState {
@@ -17,23 +19,6 @@ interface RowState {
 interface LinkState {
   key: string
   url: string
-}
-
-const inputClass =
-  "w-full p-2 rounded-md border bg-background text-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
-
-function newKey(): string {
-  return typeof crypto !== "undefined" && "randomUUID" in crypto
-    ? crypto.randomUUID()
-    : Math.random().toString(36).slice(2)
-}
-
-function moveItem<T>(items: T[], index: number, dir: -1 | 1): T[] {
-  const target = index + dir
-  if (target < 0 || target >= items.length) return items
-  const next = items.slice()
-  ;[next[index], next[target]] = [next[target], next[index]]
-  return next
 }
 
 export function EventEditForm({
@@ -258,14 +243,5 @@ export function EventEditForm({
         </p>
       )}
     </form>
-  )
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="space-y-1">
-      <label className="block text-sm font-medium">{label}</label>
-      {children}
-    </div>
   )
 }
