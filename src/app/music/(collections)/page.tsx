@@ -1,9 +1,9 @@
 import { fetchRepertoireSongs } from "@/lib/songs"
-import { SongTable } from "@/components/SongTable"
+import { SongListView } from "@/components/SongListView"
 
 export const dynamic = "force-dynamic"
 
 export default async function MusicPage() {
   const songs = await fetchRepertoireSongs()
-  return <SongTable songs={songs} />
+  return <SongListView songs={songs} />
 }

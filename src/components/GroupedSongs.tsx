@@ -29,5 +29,5 @@ async function fetchGrouped(field: GroupField): Promise<[string, Song[]][]> {
 
 export async function GroupedSongs({ field }: { field: GroupField }) {
   const groups = await fetchGrouped(field)
-  return <GroupedSongsView field={field} groups={groups} />
+  return <GroupedSongsView groups={groups} />
 }
