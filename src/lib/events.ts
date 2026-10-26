@@ -128,7 +128,7 @@ export async function fetchStageCostumesForPicker(): Promise<Pick<StageCostume, 
   const { data, error } = await supabase
     .from("stage_costumes")
     .select("id, name")
-    .order("name", { ascending: true })
+    .order("id", { ascending: true })
 
   if (error) {
     console.error(error)
