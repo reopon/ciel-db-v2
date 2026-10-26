@@ -27,7 +27,7 @@ export function RegisterForm({ venues }: { venues: Pick<Venue, "id" | "name">[] 
           <input name="date" type="date" required className={inputClass} />
         </Field>
         <Field label="備考">
-          <textarea name="notes" rows={2} className={inputClass} />
+          <textarea name="note" rows={2} className={inputClass} />
         </Field>
         <Field label="セットリスト(1行1曲。MCなど曲以外の行も入れてOKです)">
           <textarea

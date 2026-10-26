@@ -53,7 +53,7 @@ export function SongEditForm({ song, links }: { song: Song; links: string[] }) {
           <input name="choreographer" type="text" defaultValue={song.choreographer ?? ""} className={inputClass} />
         </Field>
         <Field label="備考">
-          <textarea name="notes" rows={2} defaultValue={song.notes ?? ""} className={inputClass} />
+          <textarea name="note" rows={2} defaultValue={song.note ?? ""} className={inputClass} />
         </Field>
       </section>
 

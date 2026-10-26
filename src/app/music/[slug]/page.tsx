@@ -61,10 +61,10 @@ export default async function SongDetailPage({ params }: { params: Promise<{ slu
         <dd>{song.arranger || "-"}</dd>
         <dt className="text-muted-foreground">振付</dt>
         <dd>{song.choreographer || "-"}</dd>
-        {song.notes && (
+        {song.note && (
           <>
             <dt className="text-muted-foreground">備考</dt>
-            <dd>{song.notes}</dd>
+            <dd>{song.note}</dd>
           </>
         )}
       </dl>

@@ -134,7 +134,7 @@ export function EventEditForm({
           <input name="date" type="date" required defaultValue={event.date} className={inputClass} />
         </Field>
         <Field label="備考">
-          <textarea name="notes" rows={2} defaultValue={event.notes ?? ""} className={inputClass} />
+          <textarea name="note" rows={2} defaultValue={event.note ?? ""} className={inputClass} />
         </Field>
         <Field label="衣装">
           <select

@@ -21,12 +21,12 @@ interface RawEvent extends Omit<Event, "venue"> {
 }
 
 const EVENT_SELECT = `
-  id, slug, event_name, date, notes, display_order,
+  id, slug, event_name, date, note, display_order,
   venue:venues ( id, name, slug ),
   stage_costume:stage_costumes ( id, name ),
   setlists (
     order, note_before, note_after, note,
-    songs ( id, slug, title, release_date, lyricist, composer, arranger, choreographer, notes )
+    songs ( id, slug, title, release_date, lyricist, composer, arranger, choreographer, note )
   ),
   event_links ( url, order )
 `

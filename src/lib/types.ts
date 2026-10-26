@@ -7,7 +7,7 @@ export interface Song {
   composer: string | null
   arranger: string | null
   choreographer: string | null
-  notes: string | null
+  note: string | null
 }
 
 export interface SetlistEntry {
@@ -35,7 +35,7 @@ export interface Event {
   event_name: string
   date: string
   venue: Venue | null
-  notes: string | null
+  note: string | null
   stage_costume: StageCostume | null
   display_order: number | null
 }

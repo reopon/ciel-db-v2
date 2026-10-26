@@ -11,7 +11,7 @@ export async function updateEventAction(_prevState: ActionState, formData: FormD
   const eventName = String(formData.get("eventName") ?? "").trim()
   const venueName = String(formData.get("venueName") ?? "").trim()
   const isoDate = String(formData.get("date") ?? "").trim()
-  const notes = String(formData.get("notes") ?? "").trim() || null
+  const note = String(formData.get("note") ?? "").trim() || null
   const stageCostumeIdField = String(formData.get("stageCostumeId") ?? "").trim()
   const newStageCostumeName = String(formData.get("newStageCostumeName") ?? "").trim()
   const displayOrderField = String(formData.get("displayOrder") ?? "").trim()
@@ -57,7 +57,7 @@ export async function updateEventAction(_prevState: ActionState, formData: FormD
       event_name: eventName,
       venue_id: venueId,
       date: isoDate,
-      notes,
+      note,
       stage_costume_id: stageCostumeId,
       display_order: displayOrder,
       updated_at: new Date().toISOString(),

@@ -15,7 +15,7 @@ export async function updateSongAction(_prevState: ActionState, formData: FormDa
   const composer = String(formData.get("composer") ?? "").trim() || null
   const arranger = String(formData.get("arranger") ?? "").trim() || null
   const choreographer = String(formData.get("choreographer") ?? "").trim() || null
-  const notes = String(formData.get("notes") ?? "").trim() || null
+  const note = String(formData.get("note") ?? "").trim() || null
 
   if (!songId || !title || !releaseDate) {
     return { status: "error", message: "曲ID・曲名・発売日は必須です" }
@@ -40,7 +40,7 @@ export async function updateSongAction(_prevState: ActionState, formData: FormDa
       composer,
       arranger,
       choreographer,
-      notes,
+      note,
     })
     .eq("id", songId)
 
