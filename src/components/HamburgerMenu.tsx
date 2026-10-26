@@ -7,7 +7,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 
 const MENU_LINKS = [
   { href: "/events", label: "イベント" },
-  { href: "/venues", label: "会場別" },
   { href: "/about", label: "About" },
 ]
 

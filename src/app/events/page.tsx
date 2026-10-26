@@ -51,6 +51,13 @@ export default async function EventsPage({
         )}
       </form>
 
+      <Link
+        href="/venues"
+        className="text-sm text-brand underline underline-offset-2 decoration-brand/40 hover:decoration-brand"
+      >
+        会場別に見る →
+      </Link>
+
       {filtered.length === 0 && (
         <p className="text-sm text-muted-foreground">該当するイベントがありません</p>
       )}

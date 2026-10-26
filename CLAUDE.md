@@ -99,7 +99,9 @@ Supabase を読むページは `export const dynamic = "force-dynamic"` を必�
 **YouTubeリンクは`src/lib/ogp.ts`内で専用処理**: 当初は汎用のOGPメタタグスクレイピング(`fetchLinkPreview`の`<meta property="og:...">`パース)に任せていたが、本番で実際にYouTubeのMVリンクを貼ったところサムネイル・タイトルが取得できず、裸のURL表示にフォールバックする不具合が確認された。YouTubeの動画ページは数百KB〜1MB超あり、サーバーサイド(特にデータセンターIP)からの自動フェッチは同意ページへのリダイレクトや`FETCH_TIMEOUT_MS`(5秒)超過が起きやすいため。対処として、URLのhostnameが`youtube.com`/`youtu.be`系かを`isYouTubeUrl`で判定し、該当すればYouTube公式のoEmbedエンドポイント(`https://www.youtube.com/oembed?url=...&format=json`、軽量なJSONでtitle/author_name/thumbnail_urlを返す、まさにリンクプレビュー用途向けのAPI)を先に試す`fetchYouTubeOembed`を使う。oEmbedが失敗した場合(非公開/削除済み動画など)のみ、従来の汎用スクレイピングにフォールバックする。
 
 ### 会場別ページ(`/venues`, `/venues/[slug]`)
-`/music`・`/music/composers` 等と同じ構造。一覧(`/venues`)は `fetchVenuesWithEventCounts`(venuesとeventsを別クエリで取得してJS側でカウント集計、`groupByYearMonth`等と同じ「単純な集計はJSでやる」という既存方針を踏襲)で公演数の多い順にテーブル表示、詳細(`/venues/[slug]`)はその会場の `EventCard` を日付降順で並べる(披露履歴のような軽量リストではなく、`/events` と同じ「その会場で何が起きたか」が主目的のページなのでフルの `EventCard` を採用)。ナビにも「会場別」として出している(`/music/composers`等とは違い、ユーザー自身が要望した導線のため)。
+`/music`・`/music/composers` 等と同じ構造。一覧(`/venues`)は `fetchVenuesWithEventCounts`(venuesとeventsを別クエリで取得してJS側でカウント集計、`groupByYearMonth`等と同じ「単純な集計はJSでやる」という既存方針を踏襲)で公演数の多い順にテーブル表示、詳細(`/venues/[slug]`)はその会場の `EventCard` を日付降順で並べる(披露履歴のような軽量リストではなく、`/events` と同じ「その会場で何が起きたか」が主目的のページなのでフルの `EventCard` を採用)。
+
+**ナビ導線は一度`/events`配下へのタブ統合を検討したが見送り**: `/music`の作曲別等と同じ発想で`/venues`を`/events`のタブに統合し、`/events`自体もカード型からテーブル型に変える計画を一度詳しく設計したが、イベント名は曲名より長く、テーブルの1セルに収めようとすると横スクロールか省略のどちらかを強いられることにユーザーが気づき、この再構成自体を中止した。代わりに、`/events`ページの検索フォーム直下に「会場別に見る →」(`/venues`への)リンクを追加し、ハンバーガーメニューからは「会場別」を削除した(ナビの入り口を`/events`経由の1本化する、という意図は維持しつつ、ページ構造自体は変えない軽量な対応)。
 
 ### イベント一覧・カレンダー系ページ(`/events`, `/calendar`, `/calendar/[year]/[month]`)
 URL遍歴: 旧「アーカイブ」(`/archive`、検索+月別`EventCard`一覧)は一時的に「カレンダー」(`/calendar`)に改名したが、未来のイベントも載るうえにカレンダーUI自体は無いページだったため体を表しておらず、**検索+月別一覧の機能ごと `/events`(表示名「イベント」)に移設**。`/calendar` は**別物として新設し直し、月間カレンダーグリッド(`MonthCalendar`)が新しい月から順に縦に並ぶだけのページ**にした(検索・`EventCard`一覧は持たない。欲しければ `/events` へ)。各月の見出しは `/calendar/{year}/{month}` へのリンクになっている。`/events` の検索(`q`)は実装上イベント名・会場名・曲名すべてをhaystackに含めている(`event_name`・`venue.name`・`setlist[].song.title` を連結)ので、placeholderもそれに合わせて「イベント名・曲名・会場名で検索」としている。各月セクションにあった「この月だけのページ→」リンクと、年で絞り込む`year`パラメータ・セレクトボックスは使う場面が薄いため削除済み(テキスト検索の`q`のみ)。
@@ -131,7 +133,7 @@ URL遍歴: 旧「アーカイブ」(`/archive`、検索+月別`EventCard`一覧)
 **注意**: `SetlistView` の `NoteLine`(MC等の備考を表示する `Badge`)は、`src/components/ui/badge.tsx` の `badgeVariants` がデフォルトで `whitespace-nowrap` を持つため、備考テキストが長い(複数曲名を`/`で連結した長いMC note等)とスマホでページ全体が横スクロールする不具合があった。`NoteLine` 側で `whitespace-normal break-words max-w-full` を上書きして対応済み(`/events` のように全期間の`EventCard`を並べるページで、長い備考を持つイベントに当たる確率が上がり顕在化した)。`Badge` 自体の既存利用箇所はここ1箇所のみなので、共通コンポーネント側のデフォルトは変えていない。
 
 ### ナビゲーション(`src/app/layout.tsx`, `src/components/HamburgerMenu.tsx`)
-ロゴ(Gran☆Ciel)クリックで`/`に戻れるため、ナビ本体(`navLinks`)には「カレンダー」「楽曲」の2つだけを常時表示し、残り(「イベント」「会場別」「About」)はナビ右端のハンバーガーメニューに畳んでいる。ハンバーガーは `@radix-ui/react-popover`(既存依存、以前は未使用だった)を薄くラップした `src/components/ui/popover.tsx` の上に組んだ `HamburgerMenu`。メニュー項目クリックで自動的に閉じる(`onClick={() => setOpen(false)}`)。
+ロゴ(Gran☆Ciel)クリックで`/`に戻れるため、ナビ本体(`navLinks`)には「カレンダー」「楽曲」の2つだけを常時表示し、残り(「イベント」「About」)はナビ右端のハンバーガーメニューに畳んでいる。ハンバーガーは `@radix-ui/react-popover`(既存依存、以前は未使用だった)を薄くラップした `src/components/ui/popover.tsx` の上に組んだ `HamburgerMenu`。メニュー項目クリックで自動的に閉じる(`onClick={() => setOpen(false)}`)。「会場別」(`/venues`)は以前はここにもう1項目として出ていたが削除し、`/events`ページ内のリンクからのみ辿れるようにした。
 
 ### トップページ(`/`)
 見出しは目立たせず「今月の公演」と小さく(`text-sm text-muted-foreground`)表示するだけに留め、その下は `/calendar/[year]/[month]` の今月ページと同じ構成(`MonthCalendar` + `EventCard` 一覧)。最下部の「他の月を見る」は全期間ぶんの月リンクを表示する(件数上限なし)。トップページ自体にはカレンダー一覧ページのような「今月を先頭に固定」の特別な仕組みは不要(そもそも今月しか出していないため)。
