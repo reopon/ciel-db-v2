@@ -3,7 +3,8 @@
 import { useState } from "react"
 import Link from "next/link"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
-import { fetchRecentSongPerformancesAction } from "@/actions/songs"
+import { LinkPreviewListClient } from "@/components/LinkPreviewListClient"
+import { fetchRecentSongPerformancesAction, fetchSongLinksAction } from "@/actions/songs"
 import { formatDate } from "@/lib/format"
 import type { SongPerformance } from "@/lib/songs"
 import type { Song } from "@/lib/types"
@@ -11,6 +12,7 @@ import type { Song } from "@/lib/types"
 interface SelectedSong {
   song: Song
   performances: SongPerformance[] | null // null while loading
+  linkUrls: string[] | null // null while loading
 }
 
 // Shared "zap" pattern: clicking a song name opens a modal with its info +
@@ -24,9 +26,18 @@ export function useSongModal() {
   const handleSongClick = (e: React.MouseEvent, song: Song) => {
     if (e.metaKey || e.ctrlKey || e.shiftKey) return
     e.preventDefault()
-    setSelectedSong({ song, performances: null })
+    setSelectedSong({ song, performances: null, linkUrls: null })
     fetchRecentSongPerformancesAction(song.id).then((performances) => {
-      setSelectedSong((current) => (current?.song.id === song.id ? { song, performances } : current))
+      setSelectedSong((current) => {
+        if (!current || current.song.id !== song.id) return current
+        return { ...current, performances }
+      })
+    })
+    fetchSongLinksAction(song.id).then((linkUrls) => {
+      setSelectedSong((current) => {
+        if (!current || current.song.id !== song.id) return current
+        return { ...current, linkUrls }
+      })
     })
   }
 
@@ -61,6 +72,8 @@ export function SongModal({
               <dt className="text-muted-foreground">振付</dt>
               <dd>{selectedSong.song.choreographer || "-"}</dd>
             </dl>
+
+            <LinkPreviewListClient urls={selectedSong.linkUrls ?? []} />
 
             <div className="space-y-2 pt-3 border-t">
               {selectedSong.performances == null ? (

@@ -2,10 +2,10 @@ import { LinkPreviewImage } from "@/components/LinkPreviewImage"
 import type { LinkPreview } from "@/lib/ogp"
 
 // Plain sync component (no hooks, no "use server"/"use client" needs) so it
-// can be shared between EventLinks (async Server Component, used by
-// EventCard on server-rendered pages) and EventLinksClient (the calendar
-// modal's client-side equivalent) without either needing to import across
-// the server/client boundary.
+// can be shared between LinkPreviewList (async Server Component, used by
+// EventCard and /music/[slug]) and LinkPreviewListClient (the calendar and
+// song modals' client-side equivalent) without either needing to import
+// across the server/client boundary.
 export function LinkPreviewCard({ preview }: { preview: LinkPreview }) {
   return (
     <a

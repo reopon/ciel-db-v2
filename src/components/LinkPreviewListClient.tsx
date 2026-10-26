@@ -5,16 +5,17 @@ import { LinkPreviewCard } from "@/components/LinkPreviewCard"
 import { fetchLinkPreviewsAction } from "@/actions/link-previews"
 import type { LinkPreview } from "@/lib/ogp"
 
-// Client-side counterpart to EventLinks (async Server Component — can't
-// render inside this client-side modal tree). Fetches OGP previews via a
+// Client-side counterpart to LinkPreviewList (async Server Component —
+// can't render inside a client-side modal tree). Fetches OGP previews via a
 // Server Action on mount instead, showing plain links while loading so the
-// modal isn't empty in the meantime.
+// modal isn't empty in the meantime. Shared by the calendar's event modal
+// (MonthCalendar) and the song modal (SongModal).
 //
-// No reset-on-prop-change logic here: the modal's Dialog content only
-// exists while `selected` is non-null (see MonthCalendar), so this
-// component is freshly mounted each time the modal opens for an event —
-// same reasoning as InteractiveSetlist's song-modal state reset.
-export function EventLinksClient({ urls }: { urls: string[] }) {
+// No reset-on-prop-change logic here: callers only mount this while their
+// own modal is open (e.g. {selected && (...)}), so this component is
+// freshly mounted each time a modal opens — same reasoning as
+// InteractiveSetlist's song-modal state reset.
+export function LinkPreviewListClient({ urls }: { urls: string[] }) {
   const [previews, setPreviews] = useState<LinkPreview[] | null>(null)
 
   useEffect(() => {

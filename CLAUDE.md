@@ -75,6 +75,10 @@ Supabase を読むページは `export const dynamic = "force-dynamic"` を必�
 
 **披露回数順ビューは一旦見送り**: 当初「披露回数順」というソートも検討したが、(1)披露回数データがまだ全件入力しきれておらず不正確、(2)披露回数は曲ごとのページ(`/music/[slug]`)の披露履歴で既に確認できる、(3)「ランキング化」すること自体への抵抗感、という理由でユーザー判断により今回は実装していない。データが揃えば将来的に再検討する余地がある(`fetchSongsWithPerformanceCounts`のような `fetchVenuesWithEventCounts` 同型の集計関数を追加すれば技術的には容易)。
 
+**曲の関連リンク(`song_links`)**: 1曲につき複数の外部リンク(YouTubeのMV等)を持てるよう、`event_links`(0003)と同じ形の `song_links` テーブルを追加(`migrations/0013_song_links.sql`、`song_id`・`url`・`order`、RLSも同じく公開read/write)。`songs`テーブル自体に管理画面がない(直接Supabaseで編集する運用)のに合わせ、`song_links`も管理画面は作らず直接SQL/ダッシュボードで編集する想定。`src/lib/songs.ts`の`fetchSongLinks(songId)`で取得し(`order`が予約語なのでevent_linksと同じくJS側でソート)、`/music/[slug]`では直接呼び出し、`SongModal`(クライアント)からは`fetchSongLinksAction`(`src/actions/songs.ts`)経由で呼ぶ。
+
+表示には、元々`EventLinks`/`EventLinksClient`という名前でイベント専用だったOGPプレビューコンポーネントを `LinkPreviewList`/`LinkPreviewListClient` に改名して流用(ロジックは`urls: string[]`を受け取るだけで元々entity非依存だったため、リネームのみで曲にも使える)。`EventCard`・`MonthCalendar`のイベントモーダルは`LinkPreviewList`/`LinkPreviewListClient`に、`/music/[slug]`は`LinkPreviewList`(Server Component)、`SongModal`は`LinkPreviewListClient`(Client Component)を使う。
+
 ### 会場別ページ(`/venues`, `/venues/[slug]`)
 `/music`・`/music/composers` 等と同じ構造。一覧(`/venues`)は `fetchVenuesWithEventCounts`(venuesとeventsを別クエリで取得してJS側でカウント集計、`groupByYearMonth`等と同じ「単純な集計はJSでやる」という既存方針を踏襲)で公演数の多い順にテーブル表示、詳細(`/venues/[slug]`)はその会場の `EventCard` を日付降順で並べる(披露履歴のような軽量リストではなく、`/events` と同じ「その会場で何が起きたか」が主目的のページなのでフルの `EventCard` を採用)。ナビにも「会場別」として出している(`/music/composers`等とは違い、ユーザー自身が要望した導線のため)。
 

@@ -5,7 +5,7 @@ import Link from "next/link"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { InteractiveSetlist } from "@/components/InteractiveSetlist"
-import { EventLinksClient } from "@/components/EventLinksClient"
+import { LinkPreviewListClient } from "@/components/LinkPreviewListClient"
 import { formatDate } from "@/lib/format"
 import type { EventWithSetlist } from "@/lib/types"
 
@@ -121,7 +121,7 @@ export function MonthCalendar({
                 </CardHeader>
                 <CardContent className="px-0">
                   <InteractiveSetlist setlist={selected.setlist} />
-                  <EventLinksClient urls={selected.linkUrls} />
+                  <LinkPreviewListClient urls={selected.linkUrls} />
                 </CardContent>
               </Card>
               <div className="flex items-center justify-between gap-2">

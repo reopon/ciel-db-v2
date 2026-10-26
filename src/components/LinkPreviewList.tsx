@@ -1,7 +1,9 @@
 import { fetchLinkPreview } from "@/lib/ogp"
 import { LinkPreviewCard } from "@/components/LinkPreviewCard"
 
-export async function EventLinks({ urls }: { urls: string[] }) {
+// Generic "related URLs" renderer, shared by events (EventCard) and songs
+// (/music/[slug]) — just a list of urls, OGP-previewed server-side.
+export async function LinkPreviewList({ urls }: { urls: string[] }) {
   if (urls.length === 0) return null
 
   const previews = await Promise.all(urls.map((url) => fetchLinkPreview(url)))

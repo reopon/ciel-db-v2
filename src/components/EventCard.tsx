@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { InteractiveSetlist } from "@/components/InteractiveSetlist"
-import { EventLinks } from "@/components/EventLinks"
+import { LinkPreviewList } from "@/components/LinkPreviewList"
 import { formatDate } from "@/lib/format"
 import type { EventWithSetlist } from "@/lib/types"
 
@@ -24,7 +24,7 @@ export function EventCard({ event }: { event: EventWithSetlist }) {
       </CardHeader>
       <CardContent>
         <InteractiveSetlist setlist={event.setlist} />
-        <EventLinks urls={event.linkUrls} />
+        <LinkPreviewList urls={event.linkUrls} />
       </CardContent>
     </Card>
   )

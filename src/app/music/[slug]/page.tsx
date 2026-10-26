@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { fetchSongPerformances, fetchSongBySlug } from "@/lib/songs"
+import { fetchSongPerformances, fetchSongBySlug, fetchSongLinks } from "@/lib/songs"
+import { LinkPreviewList } from "@/components/LinkPreviewList"
 import { formatDate } from "@/lib/format"
 import type { Metadata } from "next"
 
@@ -31,7 +32,7 @@ export default async function SongDetailPage({ params }: { params: Promise<{ slu
   const song = await fetchSongBySlug(slug)
   if (!song) notFound()
 
-  const performances = await fetchSongPerformances(song.id)
+  const [performances, links] = await Promise.all([fetchSongPerformances(song.id), fetchSongLinks(song.id)])
 
   return (
     <main className="max-w-xl mx-auto px-4 py-10 space-y-6">
@@ -62,6 +63,8 @@ export default async function SongDetailPage({ params }: { params: Promise<{ slu
           </>
         )}
       </dl>
+
+      <LinkPreviewList urls={links} />
 
       <div className="space-y-3">
         <h2 className="text-sm font-semibold text-muted-foreground">披露履歴 ({performances.length}回)</h2>

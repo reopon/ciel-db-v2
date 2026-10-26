@@ -59,3 +59,24 @@ export async function fetchSongPerformances(songId: number, limit?: number): Pro
   const sorted = events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   return limit ? sorted.slice(0, limit) : sorted
 }
+
+interface RawSongLink {
+  url: string
+  order: number
+}
+
+// Shared by the full song page (/music/[slug]) and the song modal
+// (via fetchSongLinksAction). "order" is a reserved word so, same as
+// event_links in mapRawEvent, sorting is done in JS rather than via
+// Postgrest's .order() on the column.
+export async function fetchSongLinks(songId: number): Promise<string[]> {
+  const supabase = getSupabaseClient()
+  const { data, error } = await supabase.from("song_links").select("url, order").eq("song_id", songId)
+
+  if (error || !data) {
+    console.error(error)
+    return []
+  }
+
+  return (data as RawSongLink[]).slice().sort((a, b) => a.order - b.order).map((l) => l.url)
+}
