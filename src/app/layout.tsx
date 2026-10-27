@@ -22,15 +22,15 @@ export const metadata: Metadata = {
   // Required for OGP/Twitter image and URL tags to resolve to absolute
   // URLs (crawlers won't fetch a relative og:image path).
   metadataBase: new URL("https://ciel-live.vercel.app"),
-  title: "Gran☆Ciel Setlists",
+  title: "Gran☆Ciel Data",
   description: SITE_DESCRIPTION,
   openGraph: {
-    title: "Gran☆Ciel Setlists",
+    title: "Gran☆Ciel Data",
     description: SITE_DESCRIPTION,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Gran☆Ciel Setlists",
+    title: "Gran☆Ciel Data",
     description: SITE_DESCRIPTION,
   },
 };

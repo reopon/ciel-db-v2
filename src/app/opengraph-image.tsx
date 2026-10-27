@@ -8,7 +8,7 @@ export const contentType = "image/png"
 // opengraph-image.tsx (events/[slug] and music/[slug] override this).
 export default async function Image() {
   return renderOgImage({
-    label: "SETLIST ARCHIVE",
+    label: "DATA ARCHIVE",
     title: "Gran☆Ciel",
     meta: "セットリスト・公演アーカイブ",
   })
