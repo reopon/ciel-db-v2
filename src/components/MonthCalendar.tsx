@@ -66,10 +66,13 @@ export function MonthCalendar({
       {showNav && (
         <div className="flex items-center justify-between text-sm">
           <Link href={prevHref} className="text-muted-foreground hover:underline">
-            ← {prevDate.getFullYear()}年{prevDate.getMonth() + 1}月
+            ← {prevDate.getMonth() + 1}月
           </Link>
+          <span className="font-medium">
+            {year}年{month}月
+          </span>
           <Link href={nextHref} className="text-muted-foreground hover:underline">
-            {nextDate.getFullYear()}年{nextDate.getMonth() + 1}月 →
+            {nextDate.getMonth() + 1}月 →
           </Link>
         </div>
       )}
