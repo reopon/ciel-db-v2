@@ -2,6 +2,7 @@ import { fetchEvents, buildMonthLinks } from "@/lib/events"
 import { EventCard } from "@/components/EventCard"
 import { MonthCalendar } from "@/components/MonthCalendar"
 import { MonthLinksSection } from "@/components/MonthLinksSection"
+import { MemberCarousel } from "@/components/MemberCarousel"
 import { todayJstIso } from "@/lib/format"
 
 export const dynamic = "force-dynamic"
@@ -19,6 +20,8 @@ export default async function TopPage() {
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-8 space-y-8">
+      <MemberCarousel />
+
       <h1 className="text-sm font-medium text-muted-foreground">今月の公演</h1>
 
       <MonthCalendar year={Number(currentYear)} month={Number(currentMonth)} events={thisMonthEvents} />
