@@ -1,14 +1,17 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Image from "next/image"
 
 // Hardcoded, not a DB table — this is a small experimental "meet the
 // members" banner for the top page, not an archival data type like
-// songs/events. photoUrl is left null until real promo photos are
-// supplied; a placeholder (colored initial) renders in the meantime.
+// songs/events. photoUrl points at a local file under public/members/
+// (official promo photos, supplied by the group's own site) — null
+// until a photo is supplied, when a placeholder (colored initial) is
+// rendered instead.
 const MEMBERS: { handle: string; photoUrl: string | null }[] = [
   { handle: "rinka_granciel", photoUrl: null },
-  { handle: "yumeka_granciel", photoUrl: null },
+  { handle: "yumeka_granciel", photoUrl: "/members/yumeka.jpg" },
   { handle: "kanon_granciel", photoUrl: null },
   { handle: "sakura_granciel", photoUrl: null },
   { handle: "rei_granciel", photoUrl: null },
@@ -44,8 +47,13 @@ export function MemberCarousel() {
     >
       <div key={index} className="absolute inset-0 animate-in fade-in duration-500">
         {member.photoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element -- external promo photo, not an optimizable local/remote asset yet
-          <img src={member.photoUrl} alt="" className="w-full h-full object-cover" />
+          <Image
+            src={member.photoUrl}
+            alt=""
+            fill
+            sizes="(max-width: 640px) 100vw, 768px"
+            className="object-cover object-[center_15%]"
+          />
         ) : (
           <div
             className="w-full h-full flex items-center justify-center text-white text-2xl font-display"
