@@ -10,13 +10,13 @@ import Image from "next/image"
 // until a photo is supplied, when a placeholder (colored initial) is
 // rendered instead.
 const MEMBERS: { handle: string; photoUrl: string | null }[] = [
-  { handle: "rinka_granciel", photoUrl: null },
+  { handle: "rinka_granciel", photoUrl: "/members/rinka.jpg" },
   { handle: "yumeka_granciel", photoUrl: "/members/yumeka.jpg" },
-  { handle: "kanon_granciel", photoUrl: null },
-  { handle: "sakura_granciel", photoUrl: null },
-  { handle: "rei_granciel", photoUrl: null },
-  { handle: "kanna_granciel", photoUrl: null },
-  { handle: "rin__granciel", photoUrl: null },
+  { handle: "kanon_granciel", photoUrl: "/members/kanon.jpg" },
+  { handle: "sakura_granciel", photoUrl: "/members/sakura.jpg" },
+  { handle: "rei_granciel", photoUrl: "/members/rei.jpg" },
+  { handle: "kanna_granciel", photoUrl: "/members/kanna.jpg" },
+  { handle: "rin__granciel", photoUrl: "/members/rin.jpg" },
 ]
 
 const INTERVAL_MS = 4000
