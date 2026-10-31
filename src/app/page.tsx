@@ -3,6 +3,7 @@ import { EventCard } from "@/components/EventCard"
 import { MonthCalendar } from "@/components/MonthCalendar"
 import { MonthLinksSection } from "@/components/MonthLinksSection"
 import { MemberCarousel } from "@/components/MemberCarousel"
+import { MonthAlbum } from "@/components/MonthAlbum"
 import { todayJstIso } from "@/lib/format"
 
 export const dynamic = "force-dynamic"
@@ -25,6 +26,11 @@ export default async function TopPage() {
       <h1 className="text-sm font-medium text-muted-foreground">今月の公演</h1>
 
       <MonthCalendar year={Number(currentYear)} month={Number(currentMonth)} events={thisMonthEvents} />
+
+      <MonthAlbum
+        label={`${Number(currentMonth)}月のアルバム`}
+        urls={thisMonthEvents.flatMap((e) => e.linkUrls)}
+      />
 
       {thisMonthEvents.length === 0 ? (
         <p className="text-sm text-muted-foreground">今月の公演情報はまだありません</p>
