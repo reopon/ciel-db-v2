@@ -3,6 +3,7 @@ import { fetchEvents, buildMonthLinks } from "@/lib/events"
 import { EventCard } from "@/components/EventCard"
 import { MonthCalendar } from "@/components/MonthCalendar"
 import { MonthLinksSection } from "@/components/MonthLinksSection"
+import { RecapHighlightLink } from "@/components/RecapHighlightLink"
 
 export const dynamic = "force-dynamic"
 
@@ -30,6 +31,8 @@ export default async function MonthCalendarPage({
       <h1 className="text-2xl font-display tracking-wide font-semibold">
         {year}年{monthNum}月
       </h1>
+
+      {monthEvents.length > 0 && <RecapHighlightLink year={Number(year)} month={monthNum} />}
 
       <MonthCalendar year={Number(year)} month={monthNum} events={monthEvents} />
 
