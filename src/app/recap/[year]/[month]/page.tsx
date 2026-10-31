@@ -11,7 +11,8 @@ export const dynamic = "force-dynamic"
 // "YYYY-M" (no zero-padding) -> costume-debut card image. Absent = the
 // card just renders without a photo, same as any other month.
 const FIRST_COSTUME_IMAGES: Record<string, string> = {
-  "2026-10": "https://pbs.twimg.com/media/HULwSZmbcAANJfn?format=webp&name=large",
+  // MV公開後はそちらのサムネに差し替え (https://www.youtube.com/watch?v=ud-Iu-geVEY)
+  "2026-10": "https://img.youtube.com/vi/ud-Iu-geVEY/maxresdefault.jpg",
 }
 
 function parseParams(year: string, month: string): { year: number; month: number } | null {
