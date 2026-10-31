@@ -9,9 +9,31 @@ export interface RecapCard {
   sub?: string
   image?: string
   ranking?: { title: string; count: number }[]
+  marquee?: string[]
 }
 
 const DURATION_MS = 3500
+const MARQUEE_ROWS = 6
+
+interface MarqueeItem {
+  title: string
+  row: number
+  duration: number
+  delay: number
+}
+
+// Niconico-comment-style scrolling rows, shown behind a card's main stat.
+// Row/duration/delay are derived only from the item's own index and text
+// (no Math.random/Date.now), so this stays a pure function safe to call
+// during render — the same title list always lays out the same way.
+function buildMarqueeItems(titles: string[]): MarqueeItem[] {
+  return titles.map((title, i) => ({
+    title,
+    row: i % MARQUEE_ROWS,
+    duration: 9 + (title.length % 5) * 1.5,
+    delay: -((i * 1.9) % 10),
+  }))
+}
 
 // Instagram/Spotify-Wrapped-style auto-advancing story: one stat per card,
 // a thin progress bar per card at the top, tap the left/right third of the
@@ -38,6 +60,10 @@ export function RecapStory({ cards, backHref }: { cards: RecapCard[]; backHref: 
           from { width: 0%; }
           to { width: 100%; }
         }
+        @keyframes recap-marquee {
+          from { transform: translateX(0); }
+          to { transform: translateX(calc(-100vw - 100%)); }
+        }
       `}</style>
 
       <div className="absolute inset-x-3 top-3 z-20 flex gap-1">
@@ -62,37 +88,57 @@ export function RecapStory({ cards, backHref }: { cards: RecapCard[]; backHref: 
 
       <div
         key={index}
-        className="flex h-full flex-col items-center justify-center gap-3 px-8 text-center animate-in fade-in zoom-in-95 duration-500"
+        className="relative flex h-full flex-col items-center justify-center gap-3 px-8 text-center animate-in fade-in zoom-in-95 duration-500"
       >
-        {card.image && (
-          <div className="mb-1 h-40 w-40 overflow-hidden rounded-2xl border border-white/20 shadow-lg sm:h-48 sm:w-48">
-            {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary external domain (X), same as LinkPreviewImage */}
-            <img src={card.image} alt="" className="h-full w-full object-cover" />
+        {card.marquee && card.marquee.length > 0 && (
+          <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-50" aria-hidden>
+            {buildMarqueeItems(card.marquee).map((item, i) => (
+              <div
+                key={i}
+                className="absolute left-full whitespace-nowrap text-lg font-bold text-white"
+                style={{
+                  top: `${(item.row + 0.5) * (100 / MARQUEE_ROWS)}%`,
+                  animation: `recap-marquee ${item.duration}s linear infinite`,
+                  animationDelay: `${item.delay}s`,
+                }}
+              >
+                {item.title}
+              </div>
+            ))}
           </div>
         )}
-        {card.kicker && <div className="text-sm font-medium tracking-wide text-white/60">{card.kicker}</div>}
-        {card.ranking ? (
-          <ol className="w-full max-w-xs space-y-2 text-left">
-            {card.ranking.map((entry, i) => (
-              <li key={entry.title} className="flex items-center gap-3">
-                <span className="font-display text-xl font-bold text-white/50 w-5 shrink-0">{i + 1}</span>
-                <span className="flex-1 font-semibold truncate">{entry.title}</span>
-                <span className="text-sm text-white/60 shrink-0">{entry.count}回</span>
-              </li>
-            ))}
-          </ol>
-        ) : (
-          card.big && <div className="font-display text-4xl font-bold leading-tight sm:text-6xl">{card.big}</div>
-        )}
-        {card.sub && <div className="text-sm text-white/70">{card.sub}</div>}
-        {isLast && (
-          <Link
-            href={backHref}
-            className="mt-6 inline-block rounded-full bg-white px-5 py-2 text-sm font-semibold text-[#111a33]"
-          >
-            カレンダーで見る →
-          </Link>
-        )}
+
+        <div className="relative z-10 flex flex-col items-center gap-3">
+          {card.image && (
+            <div className="mb-1 h-40 w-40 overflow-hidden rounded-2xl border border-white/20 shadow-lg sm:h-48 sm:w-48">
+              {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary external domain (X/YouTube), same as LinkPreviewImage */}
+              <img src={card.image} alt="" className="h-full w-full object-cover" />
+            </div>
+          )}
+          {card.kicker && <div className="text-sm font-medium tracking-wide text-white/60">{card.kicker}</div>}
+          {card.ranking ? (
+            <ol className="w-full max-w-xs space-y-2 text-left">
+              {card.ranking.map((entry, i) => (
+                <li key={entry.title} className="flex items-center gap-3">
+                  <span className="font-display text-xl font-bold text-white/50 w-5 shrink-0">{i + 1}</span>
+                  <span className="flex-1 font-semibold truncate">{entry.title}</span>
+                  <span className="text-sm text-white/60 shrink-0">{entry.count}回</span>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            card.big && <div className="font-display text-4xl font-bold leading-tight sm:text-6xl">{card.big}</div>
+          )}
+          {card.sub && <div className="text-sm text-white/70">{card.sub}</div>}
+          {isLast && (
+            <Link
+              href={backHref}
+              className="mt-6 inline-block rounded-full bg-white px-5 py-2 text-sm font-semibold text-[#111a33]"
+            >
+              カレンダーで見る →
+            </Link>
+          )}
+        </div>
       </div>
     </div>
   )

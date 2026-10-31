@@ -55,7 +55,7 @@ export default async function MonthRecapPage({
   const cards: RecapCard[] = [
     { big: `${parsed.year}.${String(parsed.month).padStart(2, "0")}`, sub: "Gran☆Cielの1ヶ月" },
     { kicker: "公演回数", big: `${recap.eventCount}`, sub: "公演" },
-    { kicker: "披露した曲", big: `${recap.songCount}`, sub: "曲" },
+    { kicker: "披露した曲", big: `${recap.songCount}`, sub: "曲", marquee: recap.songTitles },
   ]
 
   if (recap.topSongs.length > 0) {

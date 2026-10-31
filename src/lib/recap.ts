@@ -14,6 +14,7 @@ export function isRecapAvailable(year: number, month: number): boolean {
 export interface MonthRecap {
   eventCount: number
   songCount: number
+  songTitles: string[]
   topSongs: { title: string; count: number }[]
   firstSong: { title: string; date: string } | null
   firstCostume: { name: string; date: string } | null
@@ -117,6 +118,7 @@ export async function fetchMonthRecap(year: number, month: number): Promise<Mont
   return {
     eventCount,
     songCount: countBySong.size,
+    songTitles: [...countBySong.values()].map((v) => v.title),
     topSongs,
     firstSong,
     firstCostume,
