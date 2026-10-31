@@ -22,23 +22,36 @@ export async function MonthAlbum({ label, urls }: { label: string; urls: string[
             href={preview.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="block relative aspect-square rounded-md overflow-hidden border bg-muted"
+            className="block rounded-md overflow-hidden border bg-muted"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary external domains (X, blogs, …), same as LinkPreviewImage */}
-            <img
-              src={preview.image}
-              alt={preview.title ?? ""}
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
-            {/* 画像だけだと外部リンクだと分かりにくい(出典が隠れて見える)ので、
-                それと分かる小さなバッジを重ねておく */}
-            <span className="absolute top-1.5 right-1.5 flex items-center justify-center size-6 rounded-full bg-black/55 text-white backdrop-blur-sm">
-              <ExternalLink className="size-3.5" />
-            </span>
+            <div className="aspect-square">
+              {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary external domains (X, blogs, …), same as LinkPreviewImage */}
+              <img
+                src={preview.image}
+                alt={preview.title ?? ""}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+            </div>
+            {/* 写真を欠けさせず、出典と「押すとリンクが開く」ことだけを
+                下の細いバーで示す(画像に重ねない) */}
+            <div className="flex items-center justify-between gap-1 px-2 py-1 bg-background">
+              <span className="text-[11px] font-semibold text-muted-foreground truncate">
+                {hostnameOf(preview.url)}
+              </span>
+              <ExternalLink className="size-3 text-muted-foreground shrink-0" />
+            </div>
           </a>
         ))}
       </div>
     </section>
   )
+}
+
+function hostnameOf(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "")
+  } catch {
+    return url
+  }
 }
