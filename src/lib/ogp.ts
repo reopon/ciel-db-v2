@@ -23,6 +23,46 @@ function isYouTubeUrl(url: string): boolean {
   }
 }
 
+const X_HOSTS = new Set(["x.com", "www.x.com", "twitter.com", "www.twitter.com"])
+
+export function isXUrl(url: string): boolean {
+  try {
+    return X_HOSTS.has(new URL(url).hostname)
+  } catch {
+    return false
+  }
+}
+
+// og:image only ever exposes one representative photo, even for a post
+// with several attached — but the page's own embedded tweet-entity JSON
+// (inside a <script> tag, used to hydrate the SPA) references every
+// attached photo's media id. A plain regex over the raw HTML for
+// pbs.twimg.com/media/<id> substrings is far simpler than locating and
+// parsing that JSON blob, and dedup turns it into a clean id list.
+export async function fetchXPostImages(url: string): Promise<string[]> {
+  try {
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (compatible; ciel-db-v2/1.0; +https://github.com/reopon/ciel-db-v2)",
+      },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      next: { revalidate: 60 * 60 },
+    })
+    if (!res.ok) return []
+
+    const html = await res.text()
+    const ids = new Set<string>()
+    const mediaIdPattern = /pbs\.twimg\.com\/media\/([A-Za-z0-9_-]+)/g
+    let match: RegExpExecArray | null
+    while ((match = mediaIdPattern.exec(html))) ids.add(match[1])
+
+    return [...ids].map((id) => `https://pbs.twimg.com/media/${id}?format=webp&name=large`)
+  } catch (err) {
+    console.error(`X image scrape failed for ${url}`, err)
+    return []
+  }
+}
+
 interface YouTubeOembedResponse {
   title: string
   author_name: string
