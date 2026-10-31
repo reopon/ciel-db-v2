@@ -4,6 +4,7 @@ import { EventCard } from "@/components/EventCard"
 import { MonthCalendar } from "@/components/MonthCalendar"
 import { MonthLinksSection } from "@/components/MonthLinksSection"
 import { RecapHighlightLink } from "@/components/RecapHighlightLink"
+import { isRecapAvailable } from "@/lib/recap"
 
 export const dynamic = "force-dynamic"
 
@@ -32,7 +33,9 @@ export default async function MonthCalendarPage({
         {year}年{monthNum}月
       </h1>
 
-      {monthEvents.length > 0 && <RecapHighlightLink year={Number(year)} month={monthNum} />}
+      {monthEvents.length > 0 && isRecapAvailable(Number(year), monthNum) && (
+        <RecapHighlightLink year={Number(year)} month={monthNum} />
+      )}
 
       <MonthCalendar year={Number(year)} month={monthNum} events={monthEvents} />
 

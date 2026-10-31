@@ -1,5 +1,16 @@
 import { getSupabaseClient } from "@/lib/supabase"
 
+// Months whose data has actually been checked for recap purposes (e.g.
+// "初めて披露した曲/衣装" needs complete, correct setlist history for that
+// month to be meaningful). Other months' data is incomplete/unverified, so
+// /recap for them is kept inaccessible rather than showing wrong "firsts".
+// Add a month here once its data has been verified.
+const RECAP_AVAILABLE_MONTHS = new Set<string>(["2026-10"])
+
+export function isRecapAvailable(year: number, month: number): boolean {
+  return RECAP_AVAILABLE_MONTHS.has(`${year}-${month}`)
+}
+
 export interface MonthRecap {
   eventCount: number
   songCount: number

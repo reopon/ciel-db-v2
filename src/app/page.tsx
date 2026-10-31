@@ -5,6 +5,7 @@ import { MonthLinksSection } from "@/components/MonthLinksSection"
 import { MemberCarousel } from "@/components/MemberCarousel"
 import { MonthAlbum } from "@/components/MonthAlbum"
 import { RecapHighlightLink } from "@/components/RecapHighlightLink"
+import { isRecapAvailable } from "@/lib/recap"
 import { todayJstIso } from "@/lib/format"
 
 export const dynamic = "force-dynamic"
@@ -24,7 +25,9 @@ export default async function TopPage() {
     <main className="max-w-3xl mx-auto px-4 py-8 space-y-8">
       <MemberCarousel />
 
-      {thisMonthEvents.length > 0 && <RecapHighlightLink year={Number(currentYear)} month={Number(currentMonth)} />}
+      {thisMonthEvents.length > 0 && isRecapAvailable(Number(currentYear), Number(currentMonth)) && (
+        <RecapHighlightLink year={Number(currentYear)} month={Number(currentMonth)} />
+      )}
 
       <MonthCalendar year={Number(currentYear)} month={Number(currentMonth)} events={thisMonthEvents} />
 

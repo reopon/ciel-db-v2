@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
-import { fetchMonthRecap } from "@/lib/recap"
+import { fetchMonthRecap, isRecapAvailable } from "@/lib/recap"
 import { RecapStory, type RecapCard } from "@/components/RecapStory"
 
 export const dynamic = "force-dynamic"
@@ -33,7 +33,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { year, month } = await params
   const parsed = parseParams(year, month)
-  if (!parsed) return {}
+  if (!parsed || !isRecapAvailable(parsed.year, parsed.month)) return {}
 
   const title = `${parsed.year}年${parsed.month}月のまとめ | Gran☆Ciel Data`
   const description = `Gran☆Cielの${parsed.year}年${parsed.month}月をふりかえる`
@@ -47,7 +47,7 @@ export default async function MonthRecapPage({
 }) {
   const { year, month } = await params
   const parsed = parseParams(year, month)
-  if (!parsed) notFound()
+  if (!parsed || !isRecapAvailable(parsed.year, parsed.month)) notFound()
 
   const recap = await fetchMonthRecap(parsed.year, parsed.month)
 
