@@ -78,6 +78,26 @@ export function EventEditForm({
   const updateLink = (key: string, url: string) =>
     setLinks((ls) => ls.map((l) => (l.key === key ? { ...l, url } : l)))
 
+  // Pasting several URLs at once (e.g. all 7 members' post links copied
+  // together, one per line) expands into that many rows instead of
+  // dumping them all into one field — saves clicking "+URLを追加" and
+  // pasting one at a time. A single-URL paste falls through to the
+  // browser's normal paste behavior.
+  const pasteLinks = (key: string, text: string): boolean => {
+    const urls = text
+      .split(/\s+/)
+      .map((s) => s.trim())
+      .filter(Boolean)
+    if (urls.length <= 1) return false
+    setLinks((ls) => {
+      const i = ls.findIndex((l) => l.key === key)
+      if (i === -1) return ls
+      const pasted = urls.map((url) => ({ key: newKey(), url }))
+      return [...ls.slice(0, i), ...pasted, ...ls.slice(i + 1)]
+    })
+    return true
+  }
+
   // Workaround for a React 19 quirk confirmed empirically: after a
   // successful <form action> submission, every <select> in the form gets
   // reset back to its SSR/mount-time default value — even though the save
@@ -252,6 +272,9 @@ export function EventEditForm({
                 placeholder="https://..."
                 value={link.url}
                 onChange={(e) => updateLink(link.key, e.target.value)}
+                onPaste={(e) => {
+                  if (pasteLinks(link.key, e.clipboardData.getData("text"))) e.preventDefault()
+                }}
                 className={inputClass}
               />
               <div className="flex gap-1 shrink-0">
