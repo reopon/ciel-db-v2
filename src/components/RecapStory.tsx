@@ -5,8 +5,10 @@ import Link from "next/link"
 
 export interface RecapCard {
   kicker?: string
-  big: string
+  big?: string
   sub?: string
+  image?: string
+  ranking?: { title: string; count: number }[]
 }
 
 const DURATION_MS = 3500
@@ -62,8 +64,26 @@ export function RecapStory({ cards, backHref }: { cards: RecapCard[]; backHref: 
         key={index}
         className="flex h-full flex-col items-center justify-center gap-3 px-8 text-center animate-in fade-in zoom-in-95 duration-500"
       >
+        {card.image && (
+          <div className="mb-1 h-40 w-40 overflow-hidden rounded-2xl border border-white/20 shadow-lg sm:h-48 sm:w-48">
+            {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary external domain (X), same as LinkPreviewImage */}
+            <img src={card.image} alt="" className="h-full w-full object-cover" />
+          </div>
+        )}
         {card.kicker && <div className="text-sm font-medium tracking-wide text-white/60">{card.kicker}</div>}
-        <div className="font-display text-4xl font-bold leading-tight sm:text-6xl">{card.big}</div>
+        {card.ranking ? (
+          <ol className="w-full max-w-xs space-y-2 text-left">
+            {card.ranking.map((entry, i) => (
+              <li key={entry.title} className="flex items-center gap-3">
+                <span className="font-display text-xl font-bold text-white/50 w-5 shrink-0">{i + 1}</span>
+                <span className="flex-1 font-semibold truncate">{entry.title}</span>
+                <span className="text-sm text-white/60 shrink-0">{entry.count}回</span>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          card.big && <div className="font-display text-4xl font-bold leading-tight sm:text-6xl">{card.big}</div>
+        )}
         {card.sub && <div className="text-sm text-white/70">{card.sub}</div>}
         {isLast && (
           <Link

@@ -23,8 +23,8 @@ export default async function OctoberRecapPage() {
     { kicker: "披露した曲", big: `${recap.songCount}`, sub: "曲" },
   ]
 
-  if (recap.topSong) {
-    cards.push({ kicker: "一番披露した曲", big: recap.topSong.title, sub: `${recap.topSong.count}回披露` })
+  if (recap.topSongs.length > 0) {
+    cards.push({ kicker: "披露回数ランキング", ranking: recap.topSongs })
   }
   if (recap.firstSong) {
     cards.push({ kicker: "初めて披露した曲", big: recap.firstSong.title, sub: shortDate(recap.firstSong.date) })
@@ -34,6 +34,7 @@ export default async function OctoberRecapPage() {
       kicker: "初めて着た衣装",
       big: recap.firstCostume.name,
       sub: `${shortDate(recap.firstCostume.date)}〜`,
+      image: "https://pbs.twimg.com/media/HULwSZmbcAANJfn?format=webp&name=large",
     })
   }
 

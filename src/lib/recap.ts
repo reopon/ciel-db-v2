@@ -3,7 +3,7 @@ import { getSupabaseClient } from "@/lib/supabase"
 export interface MonthRecap {
   eventCount: number
   songCount: number
-  topSong: { title: string; count: number } | null
+  topSongs: { title: string; count: number }[]
   firstSong: { title: string; date: string } | null
   firstCostume: { name: string; date: string } | null
 }
@@ -44,10 +44,7 @@ export async function fetchMonthRecap(year: number, month: number): Promise<Mont
     else countBySong.set(row.song_id, { title, count: 1 })
   }
 
-  let topSong: { title: string; count: number } | null = null
-  for (const entry of countBySong.values()) {
-    if (!topSong || entry.count > topSong.count) topSong = entry
-  }
+  const topSongs = [...countBySong.values()].sort((a, b) => b.count - a.count).slice(0, 5)
 
   // Global history (song → earliest performance date, costume → earliest
   // worn date), so "first time this month" can be told apart from "just
@@ -109,7 +106,7 @@ export async function fetchMonthRecap(year: number, month: number): Promise<Mont
   return {
     eventCount,
     songCount: countBySong.size,
-    topSong,
+    topSongs,
     firstSong,
     firstCostume,
   }
