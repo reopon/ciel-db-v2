@@ -1,3 +1,4 @@
+import { ExternalLink } from "lucide-react"
 import { fetchLinkPreview, type LinkPreview } from "@/lib/ogp"
 
 // Experimental "memories album" for the top page — a photo-grid pulled
@@ -21,7 +22,7 @@ export async function MonthAlbum({ label, urls }: { label: string; urls: string[
             href={preview.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="block aspect-square rounded-md overflow-hidden border bg-muted"
+            className="block relative aspect-square rounded-md overflow-hidden border bg-muted"
           >
             {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary external domains (X, blogs, …), same as LinkPreviewImage */}
             <img
@@ -30,6 +31,11 @@ export async function MonthAlbum({ label, urls }: { label: string; urls: string[
               className="w-full h-full object-cover"
               loading="lazy"
             />
+            {/* 画像だけだと外部リンクだと分かりにくい(出典が隠れて見える)ので、
+                それと分かる小さなバッジを重ねておく */}
+            <span className="absolute top-1.5 right-1.5 flex items-center justify-center size-6 rounded-full bg-black/55 text-white backdrop-blur-sm">
+              <ExternalLink className="size-3.5" />
+            </span>
           </a>
         ))}
       </div>
