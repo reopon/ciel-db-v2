@@ -80,7 +80,11 @@ export async function fetchLinkPreview(url: string): Promise<LinkPreview> {
           "Mozilla/5.0 (compatible; ciel-db-v2/1.0; +https://github.com/reopon/ciel-db-v2)",
       },
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-      next: { revalidate: 60 * 60 * 24 },
+      // Some sites (X in particular) intermittently serve a stripped-down
+      // page with no og:image to datacenter IPs — a day-long cache would
+      // lock that blip in. An hour keeps the common case cheap while
+      // letting a transient miss recover on its own well within a day.
+      next: { revalidate: 60 * 60 },
     })
   } catch (err) {
     console.error(`OGP fetch failed for ${url}`, err)
